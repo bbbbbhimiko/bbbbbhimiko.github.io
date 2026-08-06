@@ -1,0 +1,844 @@
+<!doctype html>
+<!--
+Image Obfuscation Tool
+SPDX-License-Identifier: MIT
+Copyright (c) 2026 bbbbb_himiko
+-->
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>画像難読化ツール</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --line: #d9dee7;
+      --text: #1f2937;
+      --muted: #667085;
+      --accent: #2563eb;
+      --accent-strong: #1d4ed8;
+      --danger: #b42318;
+      --danger-bg: #fff3f2;
+      --ok: #067647;
+      --shadow: 0 18px 45px rgba(31, 41, 55, 0.08);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .app {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 36px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: stretch;
+    }
+
+    .actions .button {
+      flex: 1;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 8px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-weight: 650;
+      font-size: 14px;
+    }
+
+    .button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .button.primary:hover {
+      background: var(--accent-strong);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+    }
+
+    .controls {
+      padding: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 4px;
+      background: #eef1f5;
+      border-radius: 8px;
+      gap: 4px;
+    }
+
+    .segment {
+      min-height: 36px;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .segment.active {
+      background: #fff;
+      color: var(--accent);
+      box-shadow: 0 1px 4px rgba(31, 41, 55, 0.12);
+    }
+
+    .password-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .input {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 12px;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+    }
+
+    .input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .preview-panel {
+      padding: 14px;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      min-height: 460px;
+    }
+
+    .preview {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .preview-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 24px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .image-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 420px;
+      background:
+        linear-gradient(45deg, #eef1f5 25%, transparent 25%),
+        linear-gradient(-45deg, #eef1f5 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #eef1f5 75%),
+        linear-gradient(-45deg, transparent 75%, #eef1f5 75%);
+      background-color: #f9fafb;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+      background-size: 20px 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .image-box img {
+      display: block;
+      max-width: 100%;
+      max-height: 66vh;
+      object-fit: contain;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .details {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+      overflow: hidden;
+    }
+
+    .notice {
+      margin-top: 16px;
+      padding: 14px 16px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .notice-title {
+      margin: 0 0 6px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .notice p {
+      margin: 0;
+    }
+
+    .license-footer {
+      margin-top: 14px;
+      color: #98a2b3;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .license-footer a {
+      color: inherit;
+    }
+
+    .details summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 46px;
+      padding: 0 16px;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      list-style: none;
+    }
+
+    .details summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .details summary::after {
+      content: "+";
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .details[open] summary::after {
+      content: "-";
+    }
+
+    .details-content {
+      border-top: 1px solid var(--line);
+      padding: 14px 16px 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .details-content p {
+      margin: 0;
+    }
+
+    .details-content strong {
+      color: var(--text);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 100;
+      transform: translate(-50%, 14px);
+      min-width: min(320px, calc(100% - 32px));
+      max-width: min(520px, calc(100% - 32px));
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: #111827;
+      color: #fff;
+      box-shadow: 0 16px 40px rgba(17, 24, 39, 0.28);
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .toast.error {
+      background: var(--danger);
+    }
+
+    .toast.ok {
+      background: var(--ok);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 860px) {
+      .app {
+        width: min(100% - 20px, 680px);
+        padding-top: 18px;
+      }
+
+      .topbar,
+      .layout,
+      .preview-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        display: grid;
+      }
+
+      .image-box {
+        min-height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <h1 class="title">画像難読化ツール</h1>
+        <p class="subtitle">画像サイズを変えずに、パスワード由来のピクセルシフトで難読化します。</p>
+      </div>
+    </header>
+
+    <section class="layout">
+      <aside class="panel controls" aria-label="操作">
+        <div class="field">
+          <div class="actions">
+            <button class="button" id="sampleButton" type="button">サンプル</button>
+            <button class="button primary" id="uploadButton" type="button">画像を選択</button>
+          </div>
+          <p class="hint" id="formatHint">入力: PNG / JPG / GIF / WebP。出力: PNG RGBA 8bit。</p>
+        </div>
+
+        <div class="field">
+          <div class="label">モード</div>
+          <div class="segmented" role="group" aria-label="処理モード">
+            <button class="segment active" id="encryptButton" type="button">難読化</button>
+            <button class="segment" id="decryptButton" type="button">復元</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="passwordInput">パスワード</label>
+          <div class="password-row">
+            <input class="input" id="passwordInput" type="password" value="password" maxlength="32" autocomplete="off" spellcheck="false">
+            <button class="button" id="togglePasswordButton" type="button" aria-label="パスワード表示切り替え">表示</button>
+          </div>
+          <p class="hint">4から32文字。半角英数字のみ使えます。</p>
+        </div>
+
+        <div class="field">
+          <button class="button primary" id="downloadButton" type="button" disabled>PNGを保存</button>
+        </div>
+      </aside>
+
+      <section class="panel preview-panel" aria-label="プレビュー">
+        <div class="preview-grid">
+          <div class="preview">
+            <div class="preview-title">
+              <span>元画像</span>
+              <span id="sourceInfo"></span>
+            </div>
+            <div class="image-box">
+              <img id="sourceImage" alt="元画像">
+              <div class="empty" id="sourceEmpty">画像未選択</div>
+            </div>
+          </div>
+
+          <div class="preview">
+            <div class="preview-title">
+              <span id="resultTitle">難読化結果</span>
+              <span id="resultInfo"></span>
+            </div>
+            <div class="image-box">
+              <img id="resultImage" alt="処理結果">
+              <div class="empty" id="resultEmpty">ここに結果が表示されます</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="panel notice" aria-label="説明">
+      <p class="notice-title">説明</p>
+      <p>このツールは強い暗号化ではなく、画像を見えにくくする可逆的な難読化ツールです。短いパスワードや推測しやすいパスワードは総当たり攻撃に弱いため、機密情報や重要な画像の保護には使わないでください。画像とパスワードはブラウザ内で処理され、サーバーには送信しません。画像サイズが大きい場合は、読み込みや処理、PNG保存に時間がかかることがあります。</p>
+    </section>
+
+    <details class="panel details">
+      <summary>仕様</summary>
+      <div class="details-content">
+        <p><strong>入力:</strong> 難読化モードではPNG/JPG/GIF/WebPを読み込めます。GIFはブラウザがcanvasに描画した静止フレームを対象にします。</p>
+        <p><strong>出力:</strong> 保存形式は常にPNGです。処理はcanvasのImageData上で行うため、出力はRGBA各8bitのPNGになります。</p>
+        <p><strong>復元:</strong> 復元モードでは、このツールで保存したPNGを読み込む想定です。画像サイズとパスワードが難読化時と一致している必要があります。</p>
+        <p><strong>パスワード:</strong> 4から32文字の半角英数字を使用できます。大文字と小文字は区別されます。</p>
+        <p><strong>変換内容:</strong> パスワードと画像サイズからseedを作り、3から8回の処理ラウンドを決定します。各ラウンドでは、行方向の循環シフト、列方向の循環シフト、RGB値への可逆マスクを適用します。</p>
+        <p><strong>アルファ値:</strong> 透明度はピクセル移動時にRGBAごと一緒に移動します。RGBマスクではアルファ値を変更しないため、完全透明や半透明の情報も保持されます。</p>
+        <p><strong>安全性:</strong> このツールは画像を見えにくくするための可逆的な難読化ツールです。短いパスワードや推測しやすいパスワードは総当たり攻撃に弱く、強い暗号化の代わりにはなりません。機密情報や重要な画像の保護には専用の暗号化ツールを使ってください。</p>
+        <p><strong>作成:</strong> このHTMLツールはCodex 5.5を使って作成されました。</p>
+      </div>
+    </details>
+
+    <footer class="license-footer">
+      Image Obfuscation Tool / MIT License / Copyright (c) 2026 bbbbb_himiko
+    </footer>
+
+    <input class="hidden" id="fileInput" type="file" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp">
+    <canvas class="hidden" id="workCanvas"></canvas>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <script>
+    const PASSWORD_PATTERN = /^[A-Za-z0-9]{4,32}$/;
+    const DEFAULT_PASSWORD = "password";
+
+    const state = {
+      mode: "encrypt",
+      password: DEFAULT_PASSWORD,
+      sourceDataUrl: "",
+      resultDataUrl: "",
+      imageName: "sample"
+    };
+
+    const elements = {
+      fileInput: document.getElementById("fileInput"),
+      uploadButton: document.getElementById("uploadButton"),
+      sampleButton: document.getElementById("sampleButton"),
+      encryptButton: document.getElementById("encryptButton"),
+      decryptButton: document.getElementById("decryptButton"),
+      passwordInput: document.getElementById("passwordInput"),
+      togglePasswordButton: document.getElementById("togglePasswordButton"),
+      downloadButton: document.getElementById("downloadButton"),
+      toast: document.getElementById("toast"),
+      sourceImage: document.getElementById("sourceImage"),
+      resultImage: document.getElementById("resultImage"),
+      sourceEmpty: document.getElementById("sourceEmpty"),
+      resultEmpty: document.getElementById("resultEmpty"),
+      sourceInfo: document.getElementById("sourceInfo"),
+      resultInfo: document.getElementById("resultInfo"),
+      resultTitle: document.getElementById("resultTitle"),
+      formatHint: document.getElementById("formatHint"),
+      workCanvas: document.getElementById("workCanvas")
+    };
+
+    function hashString(text) {
+      let hash = 2166136261;
+      for (let i = 0; i < text.length; i++) {
+        hash ^= text.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return hash >>> 0;
+    }
+
+    function mix32(value) {
+      value |= 0;
+      value = Math.imul(value ^ (value >>> 16), 2246822507);
+      value = Math.imul(value ^ (value >>> 13), 3266489909);
+      return (value ^ (value >>> 16)) >>> 0;
+    }
+
+    function passwordSeed(password, width, height) {
+      return mix32(hashString(password) ^ Math.imul(width, 374761393) ^ Math.imul(height, 668265263));
+    }
+
+    function shiftPlan(password, width, height) {
+      const seed = passwordSeed(password, width, height);
+      return {
+        seed,
+        rounds: 3 + (seed % 6)
+      };
+    }
+
+    function rowShift(seed, round, row, width) {
+      if (width <= 1) return 0;
+      const value = mix32(seed ^ Math.imul(round + 1, 1000003) ^ Math.imul(row + 1, 9176));
+      const amount = 1 + (value % (width - 1));
+      return (value & 1) ? amount : -amount;
+    }
+
+    function columnShift(seed, round, column, height) {
+      if (height <= 1) return 0;
+      const value = mix32(seed ^ Math.imul(round + 1, 2000003) ^ Math.imul(column + 1, 6113));
+      const amount = 1 + (value % (height - 1));
+      return (value & 1) ? amount : -amount;
+    }
+
+    function wrapIndex(value, size) {
+      return ((value % size) + size) % size;
+    }
+
+    function shiftRows(data, width, height, seed, round, direction) {
+      const rowBuffer = new Uint8ClampedArray(width * 4);
+      for (let y = 0; y < height; y++) {
+        const shift = rowShift(seed, round, y, width) * direction;
+        const rowOffset = y * width * 4;
+        for (let x = 0; x < width; x++) {
+          const toX = wrapIndex(x + shift, width);
+          const from = rowOffset + x * 4;
+          const to = toX * 4;
+          rowBuffer[to] = data[from];
+          rowBuffer[to + 1] = data[from + 1];
+          rowBuffer[to + 2] = data[from + 2];
+          rowBuffer[to + 3] = data[from + 3];
+        }
+        data.set(rowBuffer, rowOffset);
+      }
+    }
+
+    function shiftColumns(data, width, height, seed, round, direction) {
+      const columnBuffer = new Uint8ClampedArray(height * 4);
+      for (let x = 0; x < width; x++) {
+        const shift = columnShift(seed, round, x, height) * direction;
+        for (let y = 0; y < height; y++) {
+          const toY = wrapIndex(y + shift, height);
+          const from = (y * width + x) * 4;
+          const to = toY * 4;
+          columnBuffer[to] = data[from];
+          columnBuffer[to + 1] = data[from + 1];
+          columnBuffer[to + 2] = data[from + 2];
+          columnBuffer[to + 3] = data[from + 3];
+        }
+        for (let y = 0; y < height; y++) {
+          const from = y * 4;
+          const to = (y * width + x) * 4;
+          data[to] = columnBuffer[from];
+          data[to + 1] = columnBuffer[from + 1];
+          data[to + 2] = columnBuffer[from + 2];
+          data[to + 3] = columnBuffer[from + 3];
+        }
+      }
+    }
+
+    function colorMask(data, password, width, height, mode) {
+      const seed = passwordSeed(password, width, height);
+      const sign = mode === "encrypt" ? 1 : -1;
+      for (let pixel = 0; pixel < width * height; pixel++) {
+        const base = pixel * 4;
+        const value = mix32(seed ^ Math.imul(pixel + 1, 2654435761));
+        data[base] = wrapIndex(data[base] + sign * (value & 255), 256);
+        data[base + 1] = wrapIndex(data[base + 1] + sign * ((value >>> 8) & 255), 256);
+        data[base + 2] = wrapIndex(data[base + 2] + sign * ((value >>> 16) & 255), 256);
+      }
+    }
+
+    function processImage(canvas, password, mode) {
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      const width = canvas.width;
+      const height = canvas.height;
+      const imageData = context.getImageData(0, 0, width, height);
+      const data = imageData.data;
+      const plan = shiftPlan(password, width, height);
+
+      if (mode === "encrypt") {
+        for (let round = 0; round < plan.rounds; round++) {
+          shiftRows(data, width, height, plan.seed, round, 1);
+          shiftColumns(data, width, height, plan.seed, round, 1);
+        }
+        colorMask(data, password, width, height, "encrypt");
+      } else {
+        colorMask(data, password, width, height, "decrypt");
+        for (let round = plan.rounds - 1; round >= 0; round--) {
+          shiftColumns(data, width, height, plan.seed, round, -1);
+          shiftRows(data, width, height, plan.seed, round, -1);
+        }
+      }
+
+      context.putImageData(imageData, 0, 0);
+      return plan;
+    }
+
+    function validatePassword(password) {
+      if (PASSWORD_PATTERN.test(password)) return "";
+      return "\u30d1\u30b9\u30ef\u30fc\u30c9\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044";
+    }
+
+    let toastTimer = 0;
+
+    function showToast(message, type = "") {
+      window.clearTimeout(toastTimer);
+      elements.toast.textContent = message;
+      elements.toast.className = `toast show ${type}`.trim();
+      toastTimer = window.setTimeout(() => {
+        elements.toast.className = "toast";
+      }, type === "error" ? 2800 : 1600);
+    }
+
+    function syncModeButtons() {
+      elements.encryptButton.classList.toggle("active", state.mode === "encrypt");
+      elements.decryptButton.classList.toggle("active", state.mode === "decrypt");
+      elements.resultTitle.textContent = state.mode === "encrypt" ? "Obfuscated" : "Restored";
+      if (state.mode === "encrypt") {
+        elements.fileInput.accept = "image/png,image/jpeg,image/jpg,image/gif,image/webp";
+        elements.formatHint.textContent = "\u5165\u529b: PNG / JPG / GIF / WebP\u3002\u51fa\u529b: PNG RGBA 8bit\u3002";
+      } else {
+        elements.fileInput.accept = "image/png";
+        elements.formatHint.textContent = "\u5fa9\u5143\u5165\u529b: \u3053\u306e\u30c4\u30fc\u30eb\u3067\u4fdd\u5b58\u3057\u305fPNG RGBA 8bit\u3002";
+      }
+    }
+
+    function setImageVisibility() {
+      elements.sourceImage.classList.toggle("hidden", !state.sourceDataUrl);
+      elements.resultImage.classList.toggle("hidden", !state.resultDataUrl);
+      elements.sourceEmpty.classList.toggle("hidden", !!state.sourceDataUrl);
+      elements.resultEmpty.classList.toggle("hidden", !!state.resultDataUrl);
+      elements.downloadButton.disabled = !state.resultDataUrl || !!validatePassword(state.password);
+    }
+
+    function loadImage(dataUrl) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error("Could not load the image."));
+        image.src = dataUrl;
+      });
+    }
+
+    async function render() {
+      state.resultDataUrl = "";
+      elements.resultImage.removeAttribute("src");
+      setImageVisibility();
+      syncModeButtons();
+
+      const passwordError = validatePassword(state.password);
+      if (passwordError) {
+        showToast(passwordError, "error");
+        elements.resultInfo.textContent = "";
+        return;
+      }
+
+      if (!state.sourceDataUrl) {
+        elements.resultInfo.textContent = "";
+        return;
+      }
+
+      try {
+        showToast("\u51e6\u7406\u4e2d");
+        const image = await loadImage(state.sourceDataUrl);
+        const canvas = elements.workCanvas;
+        const context = canvas.getContext("2d", { willReadFrequently: true });
+        canvas.width = image.naturalWidth;
+        canvas.height = image.naturalHeight;
+        context.imageSmoothingEnabled = false;
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0);
+
+        processImage(canvas, state.password, state.mode);
+        state.resultDataUrl = canvas.toDataURL("image/png");
+        elements.resultImage.src = state.resultDataUrl;
+        elements.resultInfo.textContent = `${canvas.width} x ${canvas.height}px`;
+        showToast("\u5b8c\u4e86", "ok");
+      } catch (error) {
+        showToast("\u30a8\u30e9\u30fc", "error");
+      } finally {
+        setImageVisibility();
+      }
+    }
+
+    function createSampleImage() {
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+      canvas.width = 420;
+      canvas.height = 300;
+
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      context.fillStyle = "rgba(37, 99, 235, 0.88)";
+      context.fillRect(42, 42, 156, 216);
+      context.fillStyle = "rgba(22, 163, 74, 0.62)";
+      context.fillRect(120, 76, 170, 116);
+      context.fillStyle = "rgba(245, 158, 11, 0.72)";
+      context.beginPath();
+      context.arc(286, 184, 76, 0, Math.PI * 2);
+      context.fill();
+
+      context.globalCompositeOperation = "destination-out";
+      context.fillStyle = "rgba(0, 0, 0, 1)";
+      context.beginPath();
+      context.arc(122, 112, 34, 0, Math.PI * 2);
+      context.fill();
+      context.fillRect(262, 48, 96, 42);
+      context.globalCompositeOperation = "source-over";
+
+      context.strokeStyle = "rgba(17, 24, 39, 0.55)";
+      context.lineWidth = 4;
+      context.strokeRect(42, 42, 156, 216);
+      context.fillStyle = "#111827";
+      context.font = "700 30px system-ui, sans-serif";
+      context.textAlign = "center";
+      context.fillText("\u753b\u50cf\u96e3\u8aad\u5316\u30c4\u30fc\u30eb", 210, 156);
+      context.font = "16px system-ui, sans-serif";
+      context.fillText("alpha sample", 210, 186);
+
+      state.imageName = "sample";
+      setSourceImage(canvas.toDataURL("image/png"));
+    }
+
+    function setSourceImage(dataUrl, name = "image") {
+      state.sourceDataUrl = dataUrl;
+      state.imageName = name.replace(/\.[^.]+$/, "") || "image";
+      state.resultDataUrl = "";
+      elements.sourceImage.src = dataUrl;
+      loadImage(dataUrl).then((image) => {
+        elements.sourceInfo.textContent = `${image.naturalWidth} x ${image.naturalHeight}px`;
+      });
+      render();
+    }
+
+    function downloadResult() {
+      if (!state.resultDataUrl) return;
+      const link = document.createElement("a");
+      const suffix = state.mode === "encrypt" ? "obfuscated" : "restored";
+      link.download = `${state.imageName}_${suffix}.png`;
+      link.href = state.resultDataUrl;
+      link.click();
+    }
+
+    elements.uploadButton.addEventListener("click", () => elements.fileInput.click());
+    elements.sampleButton.addEventListener("click", createSampleImage);
+    elements.downloadButton.addEventListener("click", downloadResult);
+
+    elements.encryptButton.addEventListener("click", () => {
+      state.mode = "encrypt";
+      render();
+    });
+
+    elements.decryptButton.addEventListener("click", () => {
+      state.mode = "decrypt";
+      render();
+    });
+
+    elements.passwordInput.addEventListener("input", (event) => {
+      state.password = event.target.value;
+      render();
+    });
+
+    elements.togglePasswordButton.addEventListener("click", () => {
+      const isPassword = elements.passwordInput.type === "password";
+      elements.passwordInput.type = isPassword ? "text" : "password";
+      elements.togglePasswordButton.textContent = isPassword ? "Hide" : "Show";
+    });
+
+    elements.fileInput.addEventListener("change", (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      if (state.mode === "decrypt" && file.type !== "image/png") {
+        showToast("PNG\u3092\u9078\u629e\u3057\u3066\u304f\u3060\u3055\u3044", "error");
+        elements.fileInput.value = "";
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => setSourceImage(String(reader.result), file.name);
+      reader.onerror = () => showToast("\u8aad\u307f\u8fbc\u307f\u5931\u6557", "error");
+      reader.readAsDataURL(file);
+    });
+
+    createSampleImage();
+  </script>
+</body>
+</html>
