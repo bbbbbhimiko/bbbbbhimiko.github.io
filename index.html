@@ -3,15 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>bbbbbhimiko | Portal</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>bbbbb_himiko | Portal</title>
     <style>
+        * { box-sizing: border-box; }
+        html, body { margin: 0; }
         body {
-            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif;
+            line-height: 1.5;
+        }
+        h1, h2, h3, p { margin: 0; }
+        a { color: inherit; text-decoration: none; }
+        ::selection { background: #ef4444; color: #fff; }
+        .min-h-screen { min-height: 100vh; }
+        .flex { display: flex; }
+        .grid { display: grid; }
+        .block { display: block; }
+        .flex-col { flex-direction: column; }
+        .flex-grow { flex-grow: 1; }
+        .flex-shrink-0 { flex-shrink: 0; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        .gap-2 { gap: .5rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-5 { gap: 1.25rem; }
+        .space-y-12 > :not([hidden]) ~ :not([hidden]) { margin-top: 3rem; }
+        .w-full { width: 100%; }
+        .w-20 { width: 5rem; }
+        .h-20 { height: 5rem; }
+        .h-full { height: 100%; }
+        .max-w-3xl { max-width: 48rem; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        .mt-1 { margin-top: .25rem; }
+        .mt-auto { margin-top: auto; }
+        .mb-5 { margin-bottom: 1.25rem; }
+        .p-1 { padding: .25rem; }
+        .p-4 { padding: 1rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+        .py-10 { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+        .pb-2 { padding-bottom: .5rem; }
+        .sticky { position: sticky; }
+        .top-0 { top: 0; }
+        .z-10 { z-index: 10; }
+        .rounded-full { border-radius: 9999px; }
+        .rounded-xl { border-radius: .75rem; }
+        .border { border-width: 1px; border-style: solid; }
+        .border-b { border-bottom-width: 1px; border-bottom-style: solid; }
+        .border-b-2 { border-bottom-width: 2px; border-bottom-style: solid; }
+        .border-t { border-top-width: 1px; border-top-style: solid; }
+        .border-slate-200 { border-color: #e2e8f0; }
+        .border-red-100 { border-color: #fee2e2; }
+        .border-orange-100 { border-color: #ffedd5; }
+        .bg-white { background-color: #fff; }
+        .bg-slate-50 { background-color: #f8fafc; }
+        .bg-slate-100 { background-color: #f1f5f9; }
+        .bg-gradient-to-tr { background-image: linear-gradient(to top right, #dc2626, #fb923c); }
+        .text-center { text-align: center; }
+        .text-xs { font-size: .75rem; line-height: 1rem; }
+        .text-sm { font-size: .875rem; line-height: 1.25rem; }
+        .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+        .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+        .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: 700; }
+        .tracking-tight { letter-spacing: -.025em; }
+        .text-red-600 { color: #dc2626; }
+        .text-slate-300 { color: #cbd5e1; }
+        .text-slate-500 { color: #64748b; }
+        .text-slate-800 { color: #1e293b; }
+        .text-slate-900 { color: #0f172a; }
+        .shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / .05); }
+        .shadow-md { box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1); }
+        .transition-all { transition: all .2s ease; }
+        .transition-colors { transition: color .2s ease, background-color .2s ease, border-color .2s ease; }
+        .hover\:border-red-400:hover { border-color: #f87171; }
+        .hover\:border-orange-400:hover { border-color: #fb923c; }
+        .hover\:shadow-md:hover { box-shadow: 0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1); }
+        .group:hover .group-hover\:text-red-600 { color: #dc2626; }
+        .group:hover .group-hover\:text-red-400 { color: #f87171; }
+        .group:hover .group-hover\:text-orange-600 { color: #ea580c; }
+        .group:hover .group-hover\:text-orange-400 { color: #fb923c; }
+        @media (min-width: 640px) {
+            .sm\:flex-row { flex-direction: row; }
+            .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .sm\:text-left { text-align: left; }
+            .sm\:text-base { font-size: 1rem; line-height: 1.5rem; }
+            .sm\:text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
         }
     </style>
 </head>
@@ -28,8 +107,8 @@
             
             <!-- プロフィール情報 -->
             <div>
-                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">bbbbbhimiko</h1>
-                <p class="text-slate-500 text-sm sm:text-base mt-1">ポータルページへようこそ。リンク集はこちらです。</p>
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">bbbbb_himiko</h1>
+                <p class="text-slate-500 text-sm sm:text-base mt-1">ぎっとはぶあいおー</p>
             </div>
         </div>
     </header>
@@ -37,49 +116,36 @@
     <main class="w-full max-w-3xl mx-auto px-4 py-10 space-y-12 flex-grow">
 
         <!-- ==========================================
-             エリア1: エビ 🦐 (海産物リンク) 
+             エリア1: エビ 🦐 (冷凍エビリンク) 
              ========================================== -->
         <section>
             <div class="flex items-center gap-2 mb-5 pb-2 border-b-2 border-red-100">
                 <span class="text-2xl">🦐</span>
-                <h2 class="text-xl font-bold text-slate-800">海の幸リンク集</h2>
+                <h2 class="text-xl font-bold text-slate-800">冷凍エビリンク集</h2>
             </div>
 
             <!-- リンクカードのグリッド -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 
-                <!-- ▼▼ リンクを追加する場合は、ここから下のブロックをコピーしてください ▼▼ -->
-                <a href="#" target="_blank" rel="noopener noreferrer" 
+                <!-- リンクカード1 -->
+                <a href="https://bbbbbhimiko.wixsite.com/himiko" target="_blank" rel="noopener noreferrer" 
                    class="group block p-4 bg-white border border-slate-200 hover:border-red-400 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h3 class="font-semibold text-slate-800 group-hover:text-red-600 transition-colors">本マグロ</h3>
-                            <p class="text-xs text-slate-500 mt-1">極上のトロが味わえるリンク</p>
+                            <h3 class="font-semibold text-slate-800 group-hover:text-red-600 transition-colors">ホームページ</h3>
+                            <p class="text-xs text-slate-500 mt-1">モデリングしたものとかを載せます</p>
                         </div>
                         <span class="text-slate-300 group-hover:text-red-400 transition-colors text-lg">→</span>
                     </div>
                 </a>
-                <!-- ▲▲ コピーここまで ▲▲ -->
 
                 <!-- リンクカード2 -->
-                <a href="#" target="_blank" rel="noopener noreferrer" 
+                <a href="https://x.com/bbbbb_himiko" target="_blank" rel="noopener noreferrer" 
                    class="group block p-4 bg-white border border-slate-200 hover:border-red-400 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h3 class="font-semibold text-slate-800 group-hover:text-red-600 transition-colors">ズワイガニ</h3>
-                            <p class="text-xs text-slate-500 mt-1">冬の味覚を堪能するリンク</p>
-                        </div>
-                        <span class="text-slate-300 group-hover:text-red-400 transition-colors text-lg">→</span>
-                    </div>
-                </a>
-
-                <!-- リンクカード3 -->
-                <a href="#" target="_blank" rel="noopener noreferrer" 
-                   class="group block p-4 bg-white border border-slate-200 hover:border-red-400 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="font-semibold text-slate-800 group-hover:text-red-600 transition-colors">ホタテガイ</h3>
-                            <p class="text-xs text-slate-500 mt-1">バター焼きがおすすめのリンク</p>
+                            <h3 class="font-semibold text-slate-800 group-hover:text-red-600 transition-colors">X（旧Twitter）</h3>
+                            <p class="text-xs text-slate-500 mt-1">あんまり考えてなさそう</p>
                         </div>
                         <span class="text-slate-300 group-hover:text-red-400 transition-colors text-lg">→</span>
                     </div>
@@ -100,38 +166,37 @@
             <!-- リンクカードのグリッド -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 
-                <!-- ▼▼ リンクを追加する場合は、ここから下のブロックをコピーしてください ▼▼ -->
-                <a href="#" target="_blank" rel="noopener noreferrer" 
+                <!-- ツールカード1 -->
+                <a href="https://bbbbbhimiko.github.io/ImageObfuscationTool/" target="_blank" rel="noopener noreferrer" 
                    class="group block p-4 bg-white border border-slate-200 hover:border-orange-400 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h3 class="font-semibold text-slate-800 group-hover:text-orange-600 transition-colors">特大エビフライ</h3>
-                            <p class="text-xs text-slate-500 mt-1">食べ応え抜群のリンク</p>
-                        </div>
-                        <span class="text-slate-300 group-hover:text-orange-400 transition-colors text-lg">→</span>
-                    </div>
-                </a>
-                <!-- ▲▲ コピーここまで ▲▲ -->
-
-                <!-- リンクカード2 -->
-                <a href="#" target="_blank" rel="noopener noreferrer" 
-                   class="group block p-4 bg-white border border-slate-200 hover:border-orange-400 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="font-semibold text-slate-800 group-hover:text-orange-600 transition-colors">タルタルエビフライ</h3>
-                            <p class="text-xs text-slate-500 mt-1">ソースたっぷりの濃厚リンク</p>
+                            <h3 class="font-semibold text-slate-800 group-hover:text-orange-600 transition-colors">画像難読化ツール</h3>
+                            <p class="text-xs text-slate-500 mt-1">画像にノイズを加えて解析を妨げるツール</p>
                         </div>
                         <span class="text-slate-300 group-hover:text-orange-400 transition-colors text-lg">→</span>
                     </div>
                 </a>
 
-                <!-- リンクカード3 -->
-                <a href="#" target="_blank" rel="noopener noreferrer" 
+                <!-- ツールカード2 -->
+                <a href="https://bbbbbhimiko.github.io/EyespinGifMaker/" target="_blank" rel="noopener noreferrer" 
                    class="group block p-4 bg-white border border-slate-200 hover:border-orange-400 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h3 class="font-semibold text-slate-800 group-hover:text-orange-600 transition-colors">サクサクエビフライ</h3>
-                            <p class="text-xs text-slate-500 mt-1">衣の食感が楽しめるリンク</p>
+                            <h3 class="font-semibold text-slate-800 group-hover:text-orange-600 transition-colors">EyespinGifMaker</h3>
+                            <p class="text-xs text-slate-500 mt-1">画像に回転する目を重ねてGIF化するツール</p>
+                        </div>
+                        <span class="text-slate-300 group-hover:text-orange-400 transition-colors text-lg">→</span>
+                    </div>
+                </a>
+
+                <!-- ツールカード3 -->
+                <a href="https://bbbbbhimiko.github.io/NewronActivationMaker/" target="_blank" rel="noopener noreferrer" 
+                   class="group block p-4 bg-white border border-slate-200 hover:border-orange-400 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-semibold text-slate-800 group-hover:text-orange-600 transition-colors">NewronActivationMaker</h3>
+                            <p class="text-xs text-slate-500 mt-1">画像に目や脳を重ねてPNG化するツール</p>
                         </div>
                         <span class="text-slate-300 group-hover:text-orange-400 transition-colors text-lg">→</span>
                     </div>
@@ -143,7 +208,7 @@
     </main>
 
     <footer class="w-full py-6 mt-auto border-t border-slate-200 bg-slate-100 text-center text-xs text-slate-500">
-        <p>&copy; <span id="year"></span> bbbbbhimiko. Hosted on GitHub Pages.</p>
+        <p>&copy; <span id="year"></span> bbbbb_himiko. Hosted on GitHub Pages.</p>
     </footer>
 
     <script>

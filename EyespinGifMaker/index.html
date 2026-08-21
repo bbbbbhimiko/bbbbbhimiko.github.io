@@ -1,0 +1,812 @@
+<!doctype html>
+<!--
+EyespinGifMaker
+SPDX-License-Identifier: MIT
+Copyright (c) 2026 bbbbb_himiko
+Full license: https://bbbbbhimiko.github.io/License/MIT/
+-->
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EyespinGifMaker</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #171717;
+    color: #f4f4f4;
+  }
+  .app {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  h1 {
+    font-size: 24px;
+    margin: 0 0 18px;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(320px,560px) minmax(320px,1fr);
+    gap: 24px;
+    align-items: start;
+  }
+  .panel {
+    background: #232323;
+    border: 1px solid #3a3a3a;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #ffffff;
+    border-radius: 8px;
+    touch-action: none;
+    cursor: grab;
+  }
+  canvas:active { cursor: grabbing; }
+  .hint {
+    font-size: 12px;
+    color: #bdbdbd;
+    margin-top: 9px;
+    line-height: 1.55;
+  }
+  .group {
+    border-top: 1px solid #3a3a3a;
+    padding-top: 14px;
+    margin-top: 14px;
+  }
+  .group:first-child {
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 138px 1fr 78px;
+    align-items: center;
+    gap: 10px;
+    margin: 9px 0;
+  }
+  .row.compact {
+    grid-template-columns: 138px 1fr;
+  }
+  label {
+    font-size: 13px;
+  }
+  input[type="range"] {
+    width: 100%;
+  }
+  input[type="file"], input[type="color"], select {
+    width: 100%;
+    background: #151515;
+    color: #fff;
+    border: 1px solid #505050;
+    border-radius: 6px;
+    padding: 7px 8px;
+  }
+  input[type="file"] {
+    font-size: 12px;
+  }
+  button {
+    width: 100%;
+    padding: 12px 14px;
+    border: 0;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .primary {
+    background: #f0f0f0;
+    color: #111;
+    margin-top: 14px;
+  }
+  .secondary {
+    background: #3a3a3a;
+    color: #fff;
+    margin-top: 8px;
+  }
+  button:disabled {
+    opacity: .45;
+    cursor: default;
+  }
+  .tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .tabs button {
+    padding: 8px;
+    background: #373737;
+    color: #fff;
+  }
+  .tabs button.active {
+    background: #eee;
+    color: #111;
+  }
+  .check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    margin: 8px 0;
+  }
+  details {
+    margin-top: 14px;
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #1e1e1e;
+  }
+  summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 12px 14px;
+    font-weight: 700;
+    user-select: none;
+    background: #262626;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary::after {
+    content: "＋";
+    float: right;
+    opacity: .8;
+  }
+  details[open] summary::after {
+    content: "－";
+  }
+  .details-body {
+    padding: 12px 14px 14px;
+  }
+  .subsection {
+    border-top: 1px solid #383838;
+    padding-top: 12px;
+    margin-top: 12px;
+  }
+  .subsection:first-child {
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+  }
+  .subsection h3 {
+    margin: 0 0 10px;
+    font-size: 14px;
+  }
+  @media(max-width:760px) {
+    .layout { grid-template-columns: 1fr; }
+    .tabs { grid-template-columns: 1fr 1fr; }
+  }
+  .license-footer {
+    margin-top: 16px;
+    color: #9b9b9b;
+    font-size: 11px;
+    text-align: center;
+  }
+  .license-footer a { color: inherit; }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>EyespinGifMaker</h1>
+  <div class="layout">
+    <section class="panel">
+      <canvas id="preview" width="512" height="512"></canvas>
+      <div class="hint">
+        背景をドラッグ：切り抜き位置を調整 ／ 目をドラッグ：目の位置を調整<br>
+        黒目は8フレームで白目の中心を周回します。
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="group">
+        <div class="row compact">
+          <label for="fileInput">入力画像</label>
+          <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp">
+        </div>
+        <button id="centerImageBtn" type="button" class="secondary">配置をリセット</button>
+        <div class="row">
+          <label for="zoom">画像ズーム</label>
+          <input id="zoom" type="range" min="0.5" max="4" step="0.01" value="1">
+          <output id="zoomOut">1.00×</output>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="row compact">
+          <label for="outSize">出力サイズ</label>
+          <select id="outSize">
+            <option value="128" selected>128 × 128 px</option>
+            <option value="256">256 × 256 px</option>
+            <option value="512">512 × 512 px</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="delay">表示時間</label>
+          <input id="delay" type="range" min="3" max="50" step="1" value="10">
+          <output id="delayOut">100 ms</output>
+        </div>
+      </div>
+
+      <details>
+        <summary>詳細設定</summary>
+        <div class="details-body">
+          <div class="subsection">
+            <h3>共通</h3>
+            <div class="row compact">
+              <label for="bgColor">背景色</label>
+              <input id="bgColor" type="color" value="#ffffff">
+            </div>
+            <div class="row">
+              <label for="bothEyeScale">両目のサイズ</label>
+              <input id="bothEyeScale" type="range" min="0.5" max="2.5" step="0.01" value="1">
+              <output id="bothEyeScaleOut">1.00×</output>
+            </div>
+            <label class="check"><input id="outline" type="checkbox" checked> 白目の輪郭線</label>
+          </div>
+
+          <div class="subsection">
+            <h3>編集対象</h3>
+            <div class="tabs">
+              <button id="eye1Btn" class="active" type="button">目 1</button>
+              <button id="eye2Btn" type="button">目 2</button>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <h3>目</h3>
+            <label class="check"><input id="eyeEnabled" type="checkbox" checked> この目を表示</label>
+            <div class="row">
+              <label for="whiteRadius">白目サイズ</label>
+              <input id="whiteRadius" type="range" min="4" max="120" step="1">
+              <output id="whiteRadiusOut"></output>
+            </div>
+            <div class="row">
+              <label for="pupilRadius">黒目サイズ</label>
+              <input id="pupilRadius" type="range" min="2" max="90" step="1">
+              <output id="pupilRadiusOut"></output>
+            </div>
+            <div class="row">
+              <label for="orbitRadius">回転半径</label>
+              <input id="orbitRadius" type="range" min="0" max="90" step="1">
+              <output id="orbitRadiusOut"></output>
+            </div>
+            <div class="row">
+              <label for="phase">開始角度</label>
+              <input id="phase" type="range" min="0" max="315" step="45">
+              <output id="phaseOut"></output>
+            </div>
+          </div>
+
+          <button id="resetBtn" type="button" class="secondary">初期状態に戻す</button>
+        </div>
+      </details>
+
+      <button id="saveBtn" type="button" class="primary">保存</button>
+    </section>
+  </div>
+  <footer class="license-footer">
+    EyespinGifMaker / <a href="https://bbbbbhimiko.github.io/License/MIT/">MIT License</a> / Copyright (c) 2026 bbbbb_himiko
+  </footer>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const sampleImageURL = "../assets/catneko.png";
+
+  const canvas = document.getElementById("preview");
+  const ctx = canvas.getContext("2d", {willReadFrequently:true});
+  const fileInput = document.getElementById("fileInput");
+  const zoom = document.getElementById("zoom");
+  const zoomOut = document.getElementById("zoomOut");
+  const centerImageBtn = document.getElementById("centerImageBtn");
+  const bothEyeScale = document.getElementById("bothEyeScale");
+  const bothEyeScaleOut = document.getElementById("bothEyeScaleOut");
+  const eye1Btn = document.getElementById("eye1Btn");
+  const eye2Btn = document.getElementById("eye2Btn");
+  const eyeEnabled = document.getElementById("eyeEnabled");
+  const whiteRadius = document.getElementById("whiteRadius");
+  const whiteRadiusOut = document.getElementById("whiteRadiusOut");
+  const pupilRadius = document.getElementById("pupilRadius");
+  const pupilRadiusOut = document.getElementById("pupilRadiusOut");
+  const orbitRadius = document.getElementById("orbitRadius");
+  const orbitRadiusOut = document.getElementById("orbitRadiusOut");
+  const phase = document.getElementById("phase");
+  const phaseOut = document.getElementById("phaseOut");
+  const outSize = document.getElementById("outSize");
+  const delay = document.getElementById("delay");
+  const delayOut = document.getElementById("delayOut");
+  const outline = document.getElementById("outline");
+  const bgColor = document.getElementById("bgColor");
+  const resetBtn = document.getElementById("resetBtn");
+  const saveBtn = document.getElementById("saveBtn");
+
+  const BASE_EYES = [
+    {x:201, y:295, white:58, pupil:34, orbit:15, phase:0, enabled:true},
+    {x:377, y:234, white:58, pupil:34, orbit:15, phase:180, enabled:true}
+  ];
+
+  const img = new Image();
+  let selectedEye = 0;
+  let drag = null;
+
+  const state = {
+    panX: 0,
+    panY: 0,
+    zoom: 1,
+    eyeScale: 1,
+    eyes: structuredClone(BASE_EYES)
+  };
+
+  function cloneEyes(src) {
+    return src.map(e => ({...e}));
+  }
+
+  function resetState() {
+    state.panX = 0;
+    state.panY = 0;
+    state.zoom = 1;
+    state.eyeScale = 1;
+    state.eyes = cloneEyes(BASE_EYES);
+    selectedEye = 0;
+    zoom.value = "1";
+    bothEyeScale.value = "1";
+    outSize.value = "128";
+    delay.value = "10";
+    outline.checked = true;
+    bgColor.value = "#ffffff";
+    fileInput.value = "";
+    loadImage(sampleImageURL);
+    syncControls();
+    drawPreview();
+  }
+
+  function fitRect(w, h, size=512) {
+    const base = Math.max(size / w, size / h);
+    const scale = base * state.zoom;
+    const dw = w * scale;
+    const dh = h * scale;
+    return {
+      x: (size - dw) / 2 + state.panX * (size / 512),
+      y: (size - dh) / 2 + state.panY * (size / 512),
+      w: dw,
+      h: dh
+    };
+  }
+
+  function drawEye(g, e, frame, scale=1, guides=false) {
+    if(!e.enabled) return;
+
+    const x = e.x * scale;
+    const y = e.y * scale;
+    const wr = e.white * scale;
+    const pr = e.pupil * scale;
+    const or = e.orbit * scale;
+    const a = (e.phase + frame * 45) * Math.PI / 180;
+    const px = x + Math.cos(a) * or;
+    const py = y + Math.sin(a) * or;
+
+    g.save();
+
+    g.beginPath();
+    g.arc(x, y, wr, 0, Math.PI * 2);
+    g.fillStyle = "#fff";
+    g.fill();
+    if(outline.checked) {
+      g.lineWidth = Math.max(1, scale);
+      g.strokeStyle = "rgba(0,0,0,.45)";
+      g.stroke();
+    }
+
+    g.beginPath();
+    g.arc(px, py, pr, 0, Math.PI * 2);
+    g.fillStyle = "#000";
+    g.fill();
+
+    if(guides) {
+      g.beginPath();
+      g.arc(x, y, wr + 3, 0, Math.PI * 2);
+      g.lineWidth = 2;
+      g.setLineDash([6,5]);
+      g.strokeStyle = "rgba(60,170,255,.95)";
+      g.stroke();
+      g.setLineDash([]);
+    }
+
+    g.restore();
+  }
+
+  function drawFrame(g, size, frame, guides=false) {
+    g.clearRect(0, 0, size, size);
+    g.fillStyle = bgColor.value;
+    g.fillRect(0, 0, size, size);
+
+    if(img.complete && img.naturalWidth) {
+      const r = fitRect(img.naturalWidth, img.naturalHeight, size);
+      g.drawImage(img, r.x, r.y, r.w, r.h);
+    }
+
+    const s = size / 512;
+    state.eyes.forEach((e, i) => drawEye(g, e, frame, s, guides && i === selectedEye));
+  }
+
+  function drawPreview() {
+    drawFrame(ctx, 512, 0, true);
+  }
+
+  function syncControls() {
+    const e = state.eyes[selectedEye];
+    eye1Btn.classList.toggle("active", selectedEye === 0);
+    eye2Btn.classList.toggle("active", selectedEye === 1);
+    eyeEnabled.checked = e.enabled;
+    whiteRadius.value = Math.round(e.white);
+    whiteRadiusOut.value = Math.round(e.white) + " px";
+    pupilRadius.value = Math.round(e.pupil);
+    pupilRadiusOut.value = Math.round(e.pupil) + " px";
+    orbitRadius.value = Math.round(e.orbit);
+    orbitRadiusOut.value = Math.round(e.orbit) + " px";
+    phase.value = Math.round(e.phase);
+    phaseOut.value = Math.round(e.phase) + "°";
+    zoom.value = state.zoom;
+    zoomOut.value = Number(state.zoom).toFixed(2) + "×";
+    bothEyeScale.value = state.eyeScale;
+    bothEyeScaleOut.value = Number(state.eyeScale).toFixed(2) + "×";
+    delayOut.value = (+delay.value * 10) + " ms";
+  }
+
+  function applyGroupScale(scale) {
+    state.eyeScale = scale;
+    state.eyes.forEach((eye, i) => {
+      eye.white = BASE_EYES[i].white * scale;
+      eye.pupil = BASE_EYES[i].pupil * scale;
+      eye.orbit = BASE_EYES[i].orbit * scale;
+    });
+    syncControls();
+    drawPreview();
+  }
+
+  function loadImage(src) {
+    img.onload = () => {
+      drawPreview();
+    };
+    img.onerror = () => {
+      console.error("画像の読み込みに失敗しました。");
+    };
+    img.src = src;
+  }
+
+  fileInput.addEventListener("change", () => {
+    const f = fileInput.files && fileInput.files[0];
+    if(!f) return;
+
+    if(!f.type.startsWith("image/")) {
+      fileInput.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onerror = () => {
+      console.error("画像ファイルを読み込めませんでした。");
+    };
+
+    reader.onload = () => {
+      const testImg = new Image();
+
+      testImg.onerror = () => {
+        console.error("この画像形式はブラウザで表示できません。");
+      };
+
+      testImg.onload = () => {
+        state.panX = 0;
+        state.panY = 0;
+        state.zoom = 1;
+        zoom.value = "1";
+        syncControls();
+        loadImage(reader.result);
+      };
+
+      testImg.src = reader.result;
+    };
+
+    reader.readAsDataURL(f);
+  });
+
+  zoom.addEventListener("input", () => {
+    state.zoom = +zoom.value;
+    syncControls();
+    drawPreview();
+  });
+
+  centerImageBtn.addEventListener("click", () => {
+    state.panX = 0;
+    state.panY = 0;
+    state.zoom = 1;
+    zoom.value = "1";
+    syncControls();
+    drawPreview();
+  });
+
+  bothEyeScale.addEventListener("input", () => {
+    applyGroupScale(+bothEyeScale.value);
+  });
+
+  function bindEyeControl(el, key, out, suffix) {
+    el.addEventListener("input", () => {
+      state.eyes[selectedEye][key] = +el.value;
+      out.value = el.value + suffix;
+      drawPreview();
+    });
+  }
+  bindEyeControl(whiteRadius, "white", whiteRadiusOut, " px");
+  bindEyeControl(pupilRadius, "pupil", pupilRadiusOut, " px");
+  bindEyeControl(orbitRadius, "orbit", orbitRadiusOut, " px");
+  bindEyeControl(phase, "phase", phaseOut, "°");
+
+  eyeEnabled.addEventListener("change", () => {
+    state.eyes[selectedEye].enabled = eyeEnabled.checked;
+    drawPreview();
+  });
+
+  outline.addEventListener("change", drawPreview);
+  bgColor.addEventListener("input", drawPreview);
+  delay.addEventListener("input", () => {
+    syncControls();
+  });
+
+  eye1Btn.addEventListener("click", () => {
+    selectedEye = 0;
+    syncControls();
+    drawPreview();
+  });
+  eye2Btn.addEventListener("click", () => {
+    selectedEye = 1;
+    syncControls();
+    drawPreview();
+  });
+
+  function canvasPoint(ev) {
+    const r = canvas.getBoundingClientRect();
+    return {
+      x: (ev.clientX - r.left) * 512 / r.width,
+      y: (ev.clientY - r.top) * 512 / r.height
+    };
+  }
+
+  canvas.addEventListener("pointerdown", (ev) => {
+    const p = canvasPoint(ev);
+    let hit = -1;
+    for(let i = state.eyes.length - 1; i >= 0; i--) {
+      const e = state.eyes[i];
+      if(e.enabled && Math.hypot(p.x - e.x, p.y - e.y) <= e.white + 14) {
+        hit = i;
+        break;
+      }
+    }
+
+    if(hit >= 0) {
+      selectedEye = hit;
+      syncControls();
+      drag = {type:"eye", start:p, ox:state.eyes[hit].x, oy:state.eyes[hit].y};
+    } else {
+      drag = {type:"bg", start:p, ox:state.panX, oy:state.panY};
+    }
+    canvas.setPointerCapture(ev.pointerId);
+  });
+
+  canvas.addEventListener("pointermove", (ev) => {
+    if(!drag) return;
+    const p = canvasPoint(ev);
+    const dx = p.x - drag.start.x;
+    const dy = p.y - drag.start.y;
+
+    if(drag.type === "eye") {
+      const e = state.eyes[selectedEye];
+      e.x = Math.max(-100, Math.min(612, drag.ox + dx));
+      e.y = Math.max(-100, Math.min(612, drag.oy + dy));
+    } else {
+      state.panX = drag.ox + dx;
+      state.panY = drag.oy + dy;
+    }
+    drawPreview();
+  });
+  canvas.addEventListener("pointerup", () => drag = null);
+  canvas.addEventListener("pointercancel", () => drag = null);
+
+  resetBtn.addEventListener("click", resetState);
+
+  function u16(n) {
+    return [n & 255, (n >> 8) & 255];
+  }
+
+  function makePalette332() {
+    const p = new Uint8Array(256 * 3);
+    for(let i = 0; i < 256; i++) {
+      const r = (i >> 5) & 7;
+      const g = (i >> 2) & 7;
+      const b = i & 3;
+      p[i * 3] = Math.round(r * 255 / 7);
+      p[i * 3 + 1] = Math.round(g * 255 / 7);
+      p[i * 3 + 2] = Math.round(b * 255 / 3);
+    }
+    return p;
+  }
+
+  function rgbaTo332(data) {
+    const out = new Uint8Array(data.length / 4);
+    for(let i = 0, j = 0; i < data.length; i += 4, j++) {
+      const a = data[i + 3];
+      let r = data[i], g = data[i + 1], b = data[i + 2];
+      if(a < 128) r = g = b = 0;
+      out[j] = ((r >> 5) << 5) | ((g >> 5) << 2) | (b >> 6);
+    }
+    return out;
+  }
+
+  function lzwEncode(indices, minCodeSize=8) {
+    const clear = 1 << minCodeSize;
+    const end = clear + 1;
+    const codes = [];
+    let sinceClear = 0;
+
+    codes.push(clear);
+    for(let i = 0; i < indices.length; i++) {
+      codes.push(indices[i]);
+      sinceClear++;
+      if(sinceClear >= 240 && i !== indices.length - 1) {
+        codes.push(clear);
+        sinceClear = 0;
+      }
+    }
+    codes.push(end);
+
+    const bytes = [];
+    let bitBuffer = 0;
+    let bitCount = 0;
+    const codeSize = minCodeSize + 1;
+
+    for(const code of codes) {
+      bitBuffer |= code << bitCount;
+      bitCount += codeSize;
+      while(bitCount >= 8) {
+        bytes.push(bitBuffer & 0xFF);
+        bitBuffer >>>= 8;
+        bitCount -= 8;
+      }
+    }
+
+    if(bitCount > 0) bytes.push(bitBuffer & 0xFF);
+
+    const blocks = [minCodeSize];
+    for(let i = 0; i < bytes.length; i += 255) {
+      const n = Math.min(255, bytes.length - i);
+      blocks.push(n, ...bytes.slice(i, i + n));
+    }
+    blocks.push(0);
+    return blocks;
+  }
+
+  function encodeGIF(frames, w, h, delayCs) {
+    const out = [];
+
+    const pushByte = (v) => out.push(v & 255);
+    const pushArray = (arr) => {
+      for(let i = 0; i < arr.length; i++) out.push(arr[i] & 255);
+    };
+    const ascii = (s) => {
+      for(let i = 0; i < s.length; i++) out.push(s.charCodeAt(i) & 255);
+    };
+
+    ascii("GIF89a");
+    pushArray(u16(w));
+    pushArray(u16(h));
+    pushByte(0xF7);
+    pushByte(0x00);
+    pushByte(0x00);
+    pushArray(makePalette332());
+
+    pushByte(0x21);
+    pushByte(0xFF);
+    pushByte(0x0B);
+    ascii("NETSCAPE2.0");
+    pushByte(0x03);
+    pushByte(0x01);
+    pushByte(0x00);
+    pushByte(0x00);
+    pushByte(0x00);
+
+    for(const rgba of frames) {
+      const idx = rgbaTo332(rgba);
+
+      pushByte(0x21);
+      pushByte(0xF9);
+      pushByte(0x04);
+      pushByte(0x00);
+      pushArray(u16(delayCs));
+      pushByte(0x00);
+      pushByte(0x00);
+
+      pushByte(0x2C);
+      pushByte(0x00);
+      pushByte(0x00);
+      pushByte(0x00);
+      pushByte(0x00);
+      pushArray(u16(w));
+      pushArray(u16(h));
+      pushByte(0x00);
+      pushArray(lzwEncode(idx, 8));
+    }
+
+    pushByte(0x3B);
+    return new Blob([new Uint8Array(out)], {type:"image/gif"});
+  }
+
+  saveBtn.addEventListener("click", async () => {
+    if(!img.complete || !img.naturalWidth) {
+      return;
+    }
+
+    saveBtn.disabled = true;
+
+    await new Promise(r => setTimeout(r, 20));
+
+    try {
+      const size = +outSize.value;
+      const c = document.createElement("canvas");
+      c.width = size;
+      c.height = size;
+      const g = c.getContext("2d", {willReadFrequently:true});
+      const frames = [];
+
+      for(let f = 0; f < 8; f++) {
+        drawFrame(g, size, f, false);
+        const imageData = g.getImageData(0, 0, size, size);
+        frames.push(new Uint8ClampedArray(imageData.data));
+        await new Promise(r => setTimeout(r, 0));
+      }
+
+      const blob = encodeGIF(frames, size, size, +delay.value);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+      const stamp =
+        pad(now.getMonth() + 1) +
+        pad(now.getDate()) +
+        pad(now.getHours()) +
+        pad(now.getMinutes()) +
+        pad(now.getSeconds());
+      a.download = `eyespin_${stamp}_${size}px.gif`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch(err) {
+      console.error(err);
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  img.onload = () => {
+    drawPreview();
+  };
+  img.src = sampleImageURL;
+  syncControls();
+})();
+</script>
+</body>
+</html>

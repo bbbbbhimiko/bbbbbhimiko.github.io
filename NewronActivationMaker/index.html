@@ -1,0 +1,839 @@
+<!doctype html>
+<!--
+NewronActivationMaker
+SPDX-License-Identifier: MIT
+Copyright (c) 2026 bbbbb_himiko
+Full license: https://bbbbbhimiko.github.io/License/MIT/
+-->
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NewronActivationMaker</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #171717;
+    color: #f4f4f4;
+  }
+  .app {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  h1 { font-size: 24px; margin: 0 0 18px; }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(320px,560px) minmax(320px,1fr);
+    gap: 24px;
+    align-items: start;
+  }
+  .panel {
+    background: #232323;
+    border: 1px solid #3a3a3a;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  canvas {
+    display:block;
+    width:100%;
+    aspect-ratio:1/1;
+    background:#ffffff;
+    border-radius:8px;
+    touch-action:none;
+    cursor:grab;
+  }
+  canvas:active { cursor: grabbing; }
+  .hint {
+    font-size:12px;
+    color:#bdbdbd;
+    margin-top:9px;
+    line-height:1.55;
+  }
+  .group {
+    border-top:1px solid #3a3a3a;
+    padding-top:14px;
+    margin-top:14px;
+  }
+  .group:first-child { border-top:0; padding-top:0; margin-top:0; }
+  .row {
+    display:grid;
+    grid-template-columns: 138px 1fr 78px;
+    align-items:center;
+    gap:10px;
+    margin:9px 0;
+  }
+  .row.compact { grid-template-columns:138px 1fr; }
+  label { font-size:13px; }
+  input[type="range"] { width:100%; }
+  input[type="file"], input[type="text"], input[type="color"], select {
+    width:100%;
+    background:#151515;
+    color:#fff;
+    border:1px solid #505050;
+    border-radius:6px;
+    padding:7px 8px;
+  }
+  button {
+    width:100%;
+    padding:12px 14px;
+    border:0;
+    border-radius:8px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .primary { background:#f0f0f0; color:#111; margin-top:14px; }
+  .secondary { background:#3a3a3a; color:#fff; margin-top:8px; }
+  details {
+    margin-top:14px;
+    border:1px solid #3a3a3a;
+    border-radius:8px;
+    overflow:hidden;
+    background:#1e1e1e;
+  }
+  summary {
+    list-style:none;
+    cursor:pointer;
+    padding:12px 14px;
+    font-weight:700;
+    user-select:none;
+    background:#262626;
+  }
+  summary::-webkit-details-marker { display:none; }
+  summary::after { content:"＋"; float:right; opacity:.8; }
+  details[open] summary::after { content:"－"; }
+  .details-body { padding:12px 14px 14px; }
+  .tabs {
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .tabs button { padding:8px; background:#373737; color:#fff; }
+  .tabs button.active { background:#eee; color:#111; }
+  .subsection {
+    border-top:1px solid #383838;
+    padding-top:12px;
+    margin-top:12px;
+  }
+  .subsection:first-child {
+    border-top:0;
+    padding-top:0;
+    margin-top:0;
+  }
+  .subsection h3 {
+    margin:0 0 10px;
+    font-size:14px;
+  }
+  .check {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    margin:8px 0;
+  }
+  @media(max-width:760px){
+    .layout{grid-template-columns:1fr;}
+    .tabs{grid-template-columns:1fr 1fr;}
+  }
+  .license-footer {
+    margin-top:16px;
+    color:#9b9b9b;
+    font-size:11px;
+    text-align:center;
+  }
+  .license-footer a { color:inherit; }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>NewronActivationMaker</h1>
+  <div class="layout">
+    <section class="panel">
+      <canvas id="preview" width="512" height="512"></canvas>
+      <div class="hint">
+        背景をドラッグ：切り抜き位置を調整 ／ パーツをドラッグ：位置を調整<br>
+        目・脳・テキスト・ラインの始点/終点を個別に動かせます。保存はPNGです。
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="group">
+        <div class="row compact">
+          <label for="fileInput">入力画像</label>
+          <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp">
+        </div>
+        <div class="row compact">
+          <label for="brainFileInput">脳画像</label>
+          <input id="brainFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp">
+        </div>
+        <button id="resetImageBtn" type="button" class="secondary">配置をリセット</button>
+        <div class="row">
+          <label for="zoom">画像ズーム</label>
+          <input id="zoom" type="range" min="0.5" max="4" step="0.01" value="1">
+          <output id="zoomOut">1.00×</output>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="row compact">
+          <label for="outSize">出力サイズ</label>
+          <select id="outSize">
+            <option value="512" selected>512 × 512 px</option>
+            <option value="1024">1024 × 1024 px</option>
+          </select>
+        </div>
+        <label class="check"><input id="enhanceImage" type="checkbox"> 輝度とコントラストを高める</label>
+      </div>
+
+      <details>
+        <summary>詳細設定</summary>
+        <div class="details-body">
+          <div class="subsection">
+            <h3>共通</h3>
+            <div class="row compact">
+              <label for="bgColor">背景色</label>
+              <input id="bgColor" type="color" value="#ffffff">
+            </div>
+            <div class="row">
+              <label for="brightness">明るさ</label>
+              <input id="brightness" type="range" min="0.5" max="2.0" step="0.01" value="1.18">
+              <output id="brightnessOut">1.18×</output>
+            </div>
+            <div class="row">
+              <label for="contrast">コントラスト</label>
+              <input id="contrast" type="range" min="0.5" max="2.5" step="0.01" value="1.32">
+              <output id="contrastOut">1.32×</output>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <h3>編集対象</h3>
+            <div class="tabs">
+              <button id="eyeBtn" type="button" class="active">目</button>
+              <button id="brainBtn" type="button">脳</button>
+              <button id="textBtn" type="button">テキスト</button>
+              <button id="lineBtn" type="button">ライン</button>
+            </div>
+          </div>
+
+          <div id="eyeSection" class="subsection">
+            <h3>目</h3>
+            <div class="row">
+              <label for="eyeDiameter">直径</label>
+              <input id="eyeDiameter" type="range" min="20" max="160" step="1">
+              <output id="eyeDiameterOut"></output>
+            </div>
+            <div class="row">
+              <label for="eyeSpacing">左右間隔</label>
+              <input id="eyeSpacing" type="range" min="10" max="240" step="1">
+              <output id="eyeSpacingOut"></output>
+            </div>
+            <div class="row">
+              <label for="eyeRotation">角度</label>
+              <input id="eyeRotation" type="range" min="-180" max="180" step="1">
+              <output id="eyeRotationOut"></output>
+            </div>
+          </div>
+
+          <div id="brainSection" class="subsection">
+            <h3>脳</h3>
+            <div class="row">
+              <label for="brainSize">サイズ</label>
+              <input id="brainSize" type="range" min="20" max="240" step="1">
+              <output id="brainSizeOut"></output>
+            </div>
+            <div class="row">
+              <label for="brainRotation">角度</label>
+              <input id="brainRotation" type="range" min="-180" max="180" step="1">
+              <output id="brainRotationOut"></output>
+            </div>
+            <label class="check"><input id="brainFlip" type="checkbox"> 左右反転</label>
+          </div>
+
+          <div id="textSection" class="subsection">
+            <h3>テキスト</h3>
+            <div class="row compact">
+              <label for="textInput">文字</label>
+              <input id="textInput" type="text" value="Newron Activation">
+            </div>
+            <div class="row">
+              <label for="textSize">サイズ</label>
+              <input id="textSize" type="range" min="10" max="120" step="1">
+              <output id="textSizeOut"></output>
+            </div>
+            <div class="row">
+              <label for="textRotation">角度</label>
+              <input id="textRotation" type="range" min="-180" max="180" step="1">
+              <output id="textRotationOut"></output>
+            </div>
+            <div class="row compact">
+              <label for="textColor">文字色</label>
+              <input id="textColor" type="color" value="#000000">
+            </div>
+          </div>
+
+          <div id="lineSection" class="subsection">
+            <h3>ライン</h3>
+            <div class="row">
+              <label for="lineWidth">太さ</label>
+              <input id="lineWidth" type="range" min="1" max="20" step="1">
+              <output id="lineWidthOut"></output>
+            </div>
+            <div class="row compact">
+              <label for="lineColor">線色</label>
+              <input id="lineColor" type="color" value="#000000">
+            </div>
+          </div>
+
+          <button id="resetAllBtn" type="button" class="secondary">初期状態に戻す</button>
+        </div>
+      </details>
+
+      <button id="saveBtn" type="button" class="primary">保存</button>
+    </section>
+  </div>
+  <footer class="license-footer">
+    NewronActivationMaker / <a href="https://bbbbbhimiko.github.io/License/MIT/">MIT License</a> / Copyright (c) 2026 bbbbb_himiko
+  </footer>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const sampleImageURL = "../assets/catneko.png";
+  const sampleBrainImageURL = "../assets/brainoumiso.png";
+
+  const canvas = document.getElementById("preview");
+  const ctx = canvas.getContext("2d");
+  const fileInput = document.getElementById("fileInput");
+  const resetImageBtn = document.getElementById("resetImageBtn");
+  const brainFileInput = document.getElementById("brainFileInput");
+  const zoom = document.getElementById("zoom");
+  const zoomOut = document.getElementById("zoomOut");
+  const outSize = document.getElementById("outSize");
+  const bgColor = document.getElementById("bgColor");
+  const enhanceImage = document.getElementById("enhanceImage");
+  const brightness = document.getElementById("brightness");
+  const contrast = document.getElementById("contrast");
+  const brightnessOut = document.getElementById("brightnessOut");
+  const contrastOut = document.getElementById("contrastOut");
+  const saveBtn = document.getElementById("saveBtn");
+  const resetAllBtn = document.getElementById("resetAllBtn");
+
+  const eyeBtn = document.getElementById("eyeBtn");
+  const brainBtn = document.getElementById("brainBtn");
+  const textBtn = document.getElementById("textBtn");
+  const lineBtn = document.getElementById("lineBtn");
+
+  const eyeDiameter = document.getElementById("eyeDiameter");
+  const eyeSpacing = document.getElementById("eyeSpacing");
+  const eyeRotation = document.getElementById("eyeRotation");
+  const eyeDiameterOut = document.getElementById("eyeDiameterOut");
+  const eyeSpacingOut = document.getElementById("eyeSpacingOut");
+  const eyeRotationOut = document.getElementById("eyeRotationOut");
+
+  const brainSize = document.getElementById("brainSize");
+  const brainRotation = document.getElementById("brainRotation");
+  const brainSizeOut = document.getElementById("brainSizeOut");
+  const brainRotationOut = document.getElementById("brainRotationOut");
+  const brainFlip = document.getElementById("brainFlip");
+
+  const textInput = document.getElementById("textInput");
+  const textSize = document.getElementById("textSize");
+  const textRotation = document.getElementById("textRotation");
+  const textColor = document.getElementById("textColor");
+  const textSizeOut = document.getElementById("textSizeOut");
+  const textRotationOut = document.getElementById("textRotationOut");
+
+  const lineWidth = document.getElementById("lineWidth");
+  const lineColor = document.getElementById("lineColor");
+  const lineWidthOut = document.getElementById("lineWidthOut");
+
+  const img = new Image();
+  const brainImg = new Image();
+  let selectedPart = "eye";
+  let drag = null;
+
+  const DEFAULT = {
+    panX: 0,
+    panY: 50,
+    zoom: 0.90,
+    enhanceImage: false,
+    brightness: 1.18,
+    contrast: 1.32,
+    eye: { x: 218, y: 310, diameter: 116, spacing: 154, rotation: 0 },
+    brain: { x: 248, y: 193, size: 150, rotation: 0, flip: false },
+    text: { x: 252, y: 56, size: 48, rotation: 0, text: "Newron Activation", color: "#000000" },
+    line: {
+      x1: 200, y1: 88,
+      x2: 220, y2: 177,
+      width: 10, color: "#000000"
+    }
+  };
+
+  const state = structuredClone(DEFAULT);
+
+  function syncControls() {
+    zoom.value = state.zoom;
+    zoomOut.value = Number(state.zoom).toFixed(2) + "×";
+    enhanceImage.checked = state.enhanceImage;
+    brightness.value = state.brightness;
+    contrast.value = state.contrast;
+    brightnessOut.value = Number(state.brightness).toFixed(2) + "×";
+    contrastOut.value = Number(state.contrast).toFixed(2) + "×";
+    eyeBtn.classList.toggle("active", selectedPart === "eye");
+    brainBtn.classList.toggle("active", selectedPart === "brain");
+    textBtn.classList.toggle("active", selectedPart === "text");
+    lineBtn.classList.toggle("active", selectedPart === "line");
+
+    eyeDiameter.value = state.eye.diameter;
+    eyeSpacing.value = state.eye.spacing;
+    eyeRotation.value = state.eye.rotation;
+    eyeDiameterOut.value = Math.round(state.eye.diameter) + " px";
+    eyeSpacingOut.value = Math.round(state.eye.spacing) + " px";
+    eyeRotationOut.value = Math.round(state.eye.rotation) + "°";
+
+    brainSize.value = state.brain.size;
+    brainRotation.value = state.brain.rotation;
+    brainSizeOut.value = Math.round(state.brain.size) + " px";
+    brainRotationOut.value = Math.round(state.brain.rotation) + "°";
+    brainFlip.checked = state.brain.flip;
+
+    textInput.value = state.text.text;
+    textSize.value = state.text.size;
+    textRotation.value = state.text.rotation;
+    textColor.value = state.text.color;
+    textSizeOut.value = Math.round(state.text.size) + " px";
+    textRotationOut.value = Math.round(state.text.rotation) + "°";
+
+    lineWidth.value = state.line.width;
+    lineWidthOut.value = Math.round(state.line.width) + " px";
+    lineColor.value = state.line.color;
+  }
+
+  function setVisibleSections() {
+    document.getElementById("eyeSection").style.display = selectedPart === "eye" ? "" : "none";
+    document.getElementById("brainSection").style.display = selectedPart === "brain" ? "" : "none";
+    document.getElementById("textSection").style.display = selectedPart === "text" ? "" : "none";
+    document.getElementById("lineSection").style.display = selectedPart === "line" ? "" : "none";
+  }
+
+  function switchPart(part) {
+    selectedPart = part;
+    syncControls();
+    setVisibleSections();
+    drawPreview();
+  }
+
+  function resetImage() {
+    state.panX = DEFAULT.panX;
+    state.panY = DEFAULT.panY;
+    state.zoom = DEFAULT.zoom;
+    zoom.value = String(DEFAULT.zoom);
+    syncControls();
+    drawPreview();
+  }
+
+  function resetInputImage() {
+    fileInput.value = "";
+    img.onload = () => drawPreview();
+    img.onerror = () => drawPreview();
+    img.src = sampleImageURL;
+    if (img.complete) drawPreview();
+  }
+
+  function resetBrainImage() {
+    brainFileInput.value = "";
+    brainImg.onload = () => drawPreview();
+    brainImg.onerror = () => drawPreview();
+    brainImg.src = sampleBrainImageURL;
+    if (brainImg.complete) drawPreview();
+  }
+
+  function resetAll() {
+    Object.assign(state, structuredClone(DEFAULT));
+    zoom.value = String(DEFAULT.zoom);
+    bgColor.value = "#ffffff";
+    resetInputImage();
+    resetBrainImage();
+    syncControls();
+    setVisibleSections();
+    drawPreview();
+  }
+
+  function fitRect(w, h, size=512) {
+    const base = Math.max(size / w, size / h);
+    const scale = base * state.zoom;
+    const dw = w * scale;
+    const dh = h * scale;
+    return {
+      x: (size - dw) / 2 + state.panX * (size / 512),
+      y: (size - dh) / 2 + state.panY * (size / 512),
+      w: dw, h: dh
+    };
+  }
+
+  function drawSingleEye(g, cx, cy, e, scale) {
+    g.save();
+    g.translate(cx * scale, cy * scale);
+    g.rotate(e.rotation * Math.PI / 180);
+
+    const whiteR = (e.diameter * scale) / 2;
+    const pupilR = whiteR * 0.58;
+
+    g.beginPath();
+    g.arc(0, 0, whiteR, 0, Math.PI * 2);
+    g.fillStyle = "#ffffff";
+    g.fill();
+    g.strokeStyle = "#222";
+    g.lineWidth = Math.max(1, scale * 1.5);
+    g.stroke();
+
+    g.beginPath();
+    g.arc(whiteR * 0.36, -whiteR * 0.04, pupilR, 0, Math.PI * 2);
+    g.fillStyle = "#000000";
+    g.fill();
+    g.restore();
+  }
+
+  function drawEyes(g, scale) {
+    const e = state.eye;
+    const cx1 = e.x;
+    const cy1 = e.y;
+    const cx2 = e.x + e.spacing;
+    const cy2 = e.y;
+    drawSingleEye(g, cx1, cy1, e, scale);
+    drawSingleEye(g, cx2, cy2, e, scale);
+  }
+
+  function drawBrain(g, scale) {
+    const b = state.brain;
+    if (!brainImg.complete || !brainImg.naturalWidth) return;
+    const aspect = brainImg.naturalWidth / brainImg.naturalHeight;
+    const width = aspect >= 1 ? b.size : b.size * aspect;
+    const height = aspect >= 1 ? b.size / aspect : b.size;
+    g.save();
+    g.translate(b.x * scale, b.y * scale);
+    g.rotate(b.rotation * Math.PI / 180);
+    g.scale(b.flip ? -1 : 1, 1);
+    g.drawImage(
+      brainImg,
+      -width * scale / 2,
+      -height * scale / 2,
+      width * scale,
+      height * scale
+    );
+    g.restore();
+  }
+
+  function drawText(g, scale) {
+    const t = state.text;
+    g.save();
+    g.translate(t.x * scale, t.y * scale);
+    g.rotate(t.rotation * Math.PI / 180);
+    g.font = `700 ${Math.round(t.size * scale)}px Arial, sans-serif`;
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.fillStyle = t.color;
+    g.fillText(t.text, 0, 0);
+    g.restore();
+  }
+
+  function drawLine(g, scale) {
+    const l = state.line;
+    g.save();
+    g.strokeStyle = l.color;
+    g.lineWidth = l.width * scale;
+    g.lineCap = "round";
+    g.beginPath();
+    g.moveTo(l.x1 * scale, l.y1 * scale);
+    g.lineTo(l.x2 * scale, l.y2 * scale);
+    g.stroke();
+    g.restore();
+  }
+
+  function drawGuideRect(g, cx, cy, w, h, rot) {
+    g.save();
+    g.strokeStyle = "rgba(60,170,255,.95)";
+    g.lineWidth = 2;
+    g.setLineDash([6,5]);
+    g.translate(cx, cy);
+    g.rotate(rot * Math.PI / 180);
+    g.strokeRect(-w/2, -h/2, w, h);
+    g.restore();
+  }
+
+  function drawLineGuides(g, scale) {
+    const l = state.line;
+    const x1 = l.x1 * scale;
+    const y1 = l.y1 * scale;
+    const x2 = l.x2 * scale;
+    const y2 = l.y2 * scale;
+    g.save();
+    g.strokeStyle = "rgba(60,170,255,.95)";
+    g.lineWidth = 2;
+    g.setLineDash([6,5]);
+    g.beginPath();
+    g.moveTo(x1, y1);
+    g.lineTo(x2, y2);
+    g.stroke();
+    g.setLineDash([]);
+    for (const [x, y] of [[x1, y1], [x2, y2]]) {
+      g.beginPath();
+      g.arc(x, y, 10, 0, Math.PI * 2);
+      g.fillStyle = "#ffffff";
+      g.fill();
+      g.strokeStyle = "rgba(60,170,255,.95)";
+      g.stroke();
+    }
+    g.restore();
+  }
+
+  function drawGuides(g, scale) {
+    if (selectedPart === "eye") {
+      const totalW = state.eye.spacing + state.eye.diameter;
+      drawGuideRect(g, (state.eye.x + totalW / 2) * scale, state.eye.y * scale, totalW * scale, state.eye.diameter * scale, state.eye.rotation);
+    } else if (selectedPart === "brain") {
+      drawGuideRect(g, state.brain.x * scale, state.brain.y * scale, state.brain.size * scale, state.brain.size * scale, state.brain.rotation);
+    } else if (selectedPart === "text") {
+      const approxW = Math.max(180 * scale, state.text.text.length * state.text.size * scale * 0.45);
+      drawGuideRect(g, state.text.x * scale, state.text.y * scale, approxW, state.text.size * scale * 1.4, state.text.rotation);
+    }
+  }
+
+  function drawFrame(g, size, guides=true) {
+    g.clearRect(0, 0, size, size);
+    g.fillStyle = bgColor.value;
+    g.fillRect(0, 0, size, size);
+
+    if (img.complete && img.naturalWidth) {
+      const r = fitRect(img.naturalWidth, img.naturalHeight, size);
+      const prevFilter = g.filter;
+      if (state.enhanceImage) {
+        g.filter = `brightness(${state.brightness}) contrast(${state.contrast})`;
+      }
+      g.drawImage(img, r.x, r.y, r.w, r.h);
+      g.filter = prevFilter;
+    }
+
+    const s = size / 512;
+    drawText(g, s);
+    drawBrain(g, s);
+    drawEyes(g, s);
+
+    if (guides) {
+      drawGuides(g, s);
+      if (selectedPart === "line") drawLineGuides(g, s);
+    }
+
+    drawLine(g, s);
+  }
+
+  function drawPreview() {
+    drawFrame(ctx, 512, true);
+  }
+
+  function pointToSegmentDistance(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1, dy = y2 - y1;
+    const len2 = dx*dx + dy*dy;
+    if (len2 === 0) return Math.hypot(px - x1, py - y1);
+    const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / len2));
+    const qx = x1 + t * dx, qy = y1 + t * dy;
+    return Math.hypot(px - qx, py - qy);
+  }
+
+  function hitTest(p) {
+    const eye1x = state.eye.x;
+    const eye2x = state.eye.x + state.eye.spacing;
+
+    const d1 = Math.hypot(p.x - state.line.x1, p.y - state.line.y1);
+    const d2 = Math.hypot(p.x - state.line.x2, p.y - state.line.y2);
+    if (d1 < 26) return {part:"line", endpoint:"start"};
+    if (d2 < 26) return {part:"line", endpoint:"end"};
+    const segd = pointToSegmentDistance(p.x, p.y, state.line.x1, state.line.y1, state.line.x2, state.line.y2);
+    if (segd < 24 + state.line.width) return {part:"line", endpoint:"all"};
+
+    if (Math.hypot(p.x - eye1x, p.y - state.eye.y) < state.eye.diameter * 0.7) return {part:"eye"};
+    if (Math.hypot(p.x - eye2x, p.y - state.eye.y) < state.eye.diameter * 0.7) return {part:"eye"};
+    if (Math.hypot(p.x - state.brain.x, p.y - state.brain.y) < state.brain.size * 0.7) return {part:"brain"};
+    if (Math.hypot(p.x - state.text.x, p.y - state.text.y) < Math.max(80, state.text.text.length * state.text.size * 0.25)) return {part:"text"};
+    return null;
+  }
+
+  function canvasPoint(ev) {
+    const r = canvas.getBoundingClientRect();
+    return {
+      x: (ev.clientX - r.left) * 512 / r.width,
+      y: (ev.clientY - r.top) * 512 / r.height
+    };
+  }
+
+  canvas.addEventListener("pointerdown", (ev) => {
+    const p = canvasPoint(ev);
+    const hit = hitTest(p);
+    if (hit) {
+      switchPart(hit.part);
+      if (hit.part === "eye") {
+        drag = {type:"part", part:"eye", start:p, ox:state.eye.x, oy:state.eye.y};
+      } else if (hit.part === "brain") {
+        drag = {type:"part", part:"brain", start:p, ox:state.brain.x, oy:state.brain.y};
+      } else if (hit.part === "text") {
+        drag = {type:"part", part:"text", start:p, ox:state.text.x, oy:state.text.y};
+      } else if (hit.part === "line") {
+        drag = {
+          type:"line",
+          endpoint:hit.endpoint,
+          start:p,
+          x1:state.line.x1,
+          y1:state.line.y1,
+          x2:state.line.x2,
+          y2:state.line.y2
+        };
+      }
+    } else {
+      drag = {type:"bg", start:p, ox:state.panX, oy:state.panY};
+    }
+    canvas.setPointerCapture(ev.pointerId);
+  });
+
+  canvas.addEventListener("pointermove", (ev) => {
+    if (!drag) return;
+    const p = canvasPoint(ev);
+    const dx = p.x - drag.start.x;
+    const dy = p.y - drag.start.y;
+
+    if (drag.type === "bg") {
+      state.panX = drag.ox + dx;
+      state.panY = drag.oy + dy;
+    } else if (drag.type === "part") {
+      if (drag.part === "eye") {
+        state.eye.x = drag.ox + dx;
+        state.eye.y = drag.oy + dy;
+      } else if (drag.part === "brain") {
+        state.brain.x = drag.ox + dx;
+        state.brain.y = drag.oy + dy;
+      } else if (drag.part === "text") {
+        state.text.x = drag.ox + dx;
+        state.text.y = drag.oy + dy;
+      }
+    } else if (drag.type === "line") {
+      if (drag.endpoint === "start") {
+        state.line.x1 = drag.x1 + dx;
+        state.line.y1 = drag.y1 + dy;
+      } else if (drag.endpoint === "end") {
+        state.line.x2 = drag.x2 + dx;
+        state.line.y2 = drag.y2 + dy;
+      } else {
+        state.line.x1 = drag.x1 + dx;
+        state.line.y1 = drag.y1 + dy;
+        state.line.x2 = drag.x2 + dx;
+        state.line.y2 = drag.y2 + dy;
+      }
+    }
+    drawPreview();
+  });
+
+  canvas.addEventListener("pointerup", () => drag = null);
+  canvas.addEventListener("pointercancel", () => drag = null);
+
+  fileInput.addEventListener("change", () => {
+    const f = fileInput.files && fileInput.files[0];
+    if (!f || !f.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      state.panX = 0;
+      state.panY = 0;
+      state.zoom = 1;
+      zoom.value = "1";
+      img.onload = () => drawPreview();
+      img.src = reader.result;
+      syncControls();
+    };
+    reader.readAsDataURL(f);
+  });
+
+  brainFileInput.addEventListener("change", () => {
+    const f = brainFileInput.files && brainFileInput.files[0];
+    if (!f || !f.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      brainImg.onload = () => drawPreview();
+      brainImg.onerror = () => drawPreview();
+      brainImg.src = reader.result;
+    };
+    reader.readAsDataURL(f);
+  });
+
+  resetImageBtn.addEventListener("click", resetImage);
+  resetAllBtn.addEventListener("click", resetAll);
+  zoom.addEventListener("input", () => { state.zoom = +zoom.value; syncControls(); drawPreview(); });
+  bgColor.addEventListener("input", drawPreview);
+  enhanceImage.addEventListener("change", () => { state.enhanceImage = enhanceImage.checked; syncControls(); drawPreview(); });
+  brightness.addEventListener("input", () => { state.brightness = +brightness.value; syncControls(); drawPreview(); });
+  contrast.addEventListener("input", () => { state.contrast = +contrast.value; syncControls(); drawPreview(); });
+
+  eyeBtn.addEventListener("click", () => switchPart("eye"));
+  brainBtn.addEventListener("click", () => switchPart("brain"));
+  textBtn.addEventListener("click", () => switchPart("text"));
+  lineBtn.addEventListener("click", () => switchPart("line"));
+
+  eyeDiameter.addEventListener("input", () => { state.eye.diameter = +eyeDiameter.value; syncControls(); drawPreview(); });
+  eyeSpacing.addEventListener("input", () => { state.eye.spacing = +eyeSpacing.value; syncControls(); drawPreview(); });
+  eyeRotation.addEventListener("input", () => { state.eye.rotation = +eyeRotation.value; syncControls(); drawPreview(); });
+
+  brainSize.addEventListener("input", () => { state.brain.size = +brainSize.value; syncControls(); drawPreview(); });
+  brainRotation.addEventListener("input", () => { state.brain.rotation = +brainRotation.value; syncControls(); drawPreview(); });
+  brainFlip.addEventListener("change", () => { state.brain.flip = brainFlip.checked; drawPreview(); });
+
+  textInput.addEventListener("input", () => { state.text.text = textInput.value; drawPreview(); });
+  textSize.addEventListener("input", () => { state.text.size = +textSize.value; syncControls(); drawPreview(); });
+  textRotation.addEventListener("input", () => { state.text.rotation = +textRotation.value; syncControls(); drawPreview(); });
+  textColor.addEventListener("input", () => { state.text.color = textColor.value; drawPreview(); });
+
+  lineWidth.addEventListener("input", () => { state.line.width = +lineWidth.value; syncControls(); drawPreview(); });
+  lineColor.addEventListener("input", () => { state.line.color = lineColor.value; drawPreview(); });
+
+  saveBtn.addEventListener("click", () => {
+    const size = +outSize.value;
+    const outCanvas = document.createElement("canvas");
+    outCanvas.width = size;
+    outCanvas.height = size;
+    const g = outCanvas.getContext("2d");
+    drawFrame(g, size, false);
+
+    const now = new Date();
+    const pad = n => String(n).padStart(2, "0");
+    const stamp = pad(now.getMonth()+1) + pad(now.getDate()) + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
+
+    outCanvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `newron_activation_${stamp}_${size}px.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, "image/png");
+  });
+
+  img.onload = () => drawPreview();
+  img.onerror = () => drawPreview();
+  img.src = sampleImageURL;
+  brainImg.onload = () => drawPreview();
+  brainImg.onerror = () => drawPreview();
+  brainImg.src = sampleBrainImageURL;
+  syncControls();
+  setVisibleSections();
+  drawPreview();
+})();
+</script>
+</body>
+</html>
