@@ -183,7 +183,12 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
     font-size: 14px;
   }
   @media(max-width:760px) {
-    .layout { grid-template-columns: 1fr; }
+    .app { padding: 16px 12px; }
+    .layout { grid-template-columns: minmax(0, 1fr); }
+    .layout > *, .panel { min-width: 0; }
+    .row { grid-template-columns: 96px minmax(0, 1fr) 58px; gap: 5px; }
+    .row.compact { grid-template-columns: 96px minmax(0, 1fr); }
+    input[type="file"], select { min-width: 0; }
     .tabs { grid-template-columns: 1fr 1fr; }
   }
   .license-footer {
@@ -191,6 +196,7 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
     color: #9b9b9b;
     font-size: 11px;
     text-align: center;
+    overflow-wrap: anywhere;
   }
   .license-footer a { color: inherit; }
 </style>

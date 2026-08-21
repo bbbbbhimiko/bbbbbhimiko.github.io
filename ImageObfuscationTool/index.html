@@ -384,7 +384,24 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
       .topbar,
       .layout,
       .preview-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .layout > *,
+      .panel,
+      .controls,
+      .preview-panel,
+      .preview,
+      .field,
+      .actions,
+      .password-row,
+      .image-box {
+        min-width: 0;
+      }
+
+      .button,
+      .input {
+        min-width: 0;
       }
 
       .topbar {
@@ -393,6 +410,33 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
 
       .image-box {
         min-height: 300px;
+      }
+
+      .notice,
+      .license-footer {
+        overflow-wrap: anywhere;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .app {
+        width: calc(100% - 16px);
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .controls,
+      .preview-panel,
+      .notice {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .image-box {
+        min-height: 240px;
       }
     }
   </style>

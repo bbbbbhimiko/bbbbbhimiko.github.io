@@ -69,6 +69,18 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
     margin:9px 0;
   }
   .row.compact { grid-template-columns:138px 1fr; }
+  .zoom-side {
+    display:grid;
+    gap:3px;
+    justify-items:start;
+  }
+  .inline-check {
+    display:flex;
+    align-items:center;
+    gap:4px;
+    white-space:nowrap;
+    font-size:12px;
+  }
   label { font-size:13px; }
   input[type="range"] { width:100%; }
   input[type="file"], input[type="text"], input[type="color"], select {
@@ -110,7 +122,7 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
   .details-body { padding:12px 14px 14px; }
   .tabs {
     display:grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap:8px;
     margin-bottom:12px;
   }
@@ -138,7 +150,12 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
     margin:8px 0;
   }
   @media(max-width:760px){
-    .layout{grid-template-columns:1fr;}
+    .app { padding:16px 12px; }
+    .layout { grid-template-columns:minmax(0,1fr); }
+    .layout > *, .panel { min-width:0; }
+    .row { grid-template-columns:96px minmax(0,1fr) 58px; gap:5px; }
+    .row.compact { grid-template-columns:96px minmax(0,1fr); }
+    input[type="file"], input[type="text"], select { min-width:0; }
     .tabs{grid-template-columns:1fr 1fr;}
   }
   .license-footer {
@@ -146,6 +163,7 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
     color:#9b9b9b;
     font-size:11px;
     text-align:center;
+    overflow-wrap:anywhere;
   }
   .license-footer a { color:inherit; }
 </style>
@@ -158,7 +176,7 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
       <canvas id="preview" width="512" height="512"></canvas>
       <div class="hint">
         背景をドラッグ：切り抜き位置を調整 ／ パーツをドラッグ：位置を調整<br>
-        目・脳・テキスト・ラインの始点/終点を個別に動かせます。保存はPNGです。
+        目・脳・追加の画像・テキスト・ラインの始点/終点を個別に動かせます。保存はPNGです。
       </div>
     </section>
 
@@ -168,16 +186,33 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
           <label for="fileInput">入力画像</label>
           <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp">
         </div>
+        <div class="row">
+          <label for="zoom">画像ズーム</label>
+          <input id="zoom" type="range" min="0.1" max="5" step="0.01" value="1">
+          <div class="zoom-side">
+            <output id="zoomOut">1.00×</output>
+            <label class="inline-check"><input id="imageFlip" type="checkbox"> 反転</label>
+          </div>
+        </div>
         <div class="row compact">
           <label for="brainFileInput">脳画像</label>
           <input id="brainFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp">
         </div>
-        <button id="resetImageBtn" type="button" class="secondary">配置をリセット</button>
         <div class="row">
-          <label for="zoom">画像ズーム</label>
-          <input id="zoom" type="range" min="0.5" max="4" step="0.01" value="1">
-          <output id="zoomOut">1.00×</output>
+          <label for="brainZoom">脳ズーム</label>
+          <input id="brainZoom" type="range" min="0.1" max="5" step="0.01">
+          <output id="brainZoomOut"></output>
         </div>
+        <div class="row compact">
+          <label for="extraFileInput">追加の画像</label>
+          <input id="extraFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp">
+        </div>
+        <div class="row">
+          <label for="extraZoom">追加画像ズーム</label>
+          <input id="extraZoom" type="range" min="0.1" max="5" step="0.01">
+          <output id="extraZoomOut"></output>
+        </div>
+        <button id="resetImageBtn" type="button" class="secondary">配置をリセット</button>
       </div>
 
       <div class="group">
@@ -217,6 +252,7 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
             <div class="tabs">
               <button id="eyeBtn" type="button" class="active">目</button>
               <button id="brainBtn" type="button">脳</button>
+              <button id="extraBtn" type="button">追加の画像</button>
               <button id="textBtn" type="button">テキスト</button>
               <button id="lineBtn" type="button">ライン</button>
             </div>
@@ -244,16 +280,21 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
           <div id="brainSection" class="subsection">
             <h3>脳</h3>
             <div class="row">
-              <label for="brainSize">サイズ</label>
-              <input id="brainSize" type="range" min="20" max="240" step="1">
-              <output id="brainSizeOut"></output>
-            </div>
-            <div class="row">
               <label for="brainRotation">角度</label>
               <input id="brainRotation" type="range" min="-180" max="180" step="1">
               <output id="brainRotationOut"></output>
             </div>
             <label class="check"><input id="brainFlip" type="checkbox"> 左右反転</label>
+          </div>
+
+          <div id="extraSection" class="subsection">
+            <h3>追加の画像</h3>
+            <div class="row">
+              <label for="extraRotation">角度</label>
+              <input id="extraRotation" type="range" min="-180" max="180" step="1">
+              <output id="extraRotationOut"></output>
+            </div>
+            <label class="check"><input id="extraFlip" type="checkbox"> 左右反転</label>
           </div>
 
           <div id="textSection" class="subsection">
@@ -315,8 +356,10 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
   const fileInput = document.getElementById("fileInput");
   const resetImageBtn = document.getElementById("resetImageBtn");
   const brainFileInput = document.getElementById("brainFileInput");
+  const extraFileInput = document.getElementById("extraFileInput");
   const zoom = document.getElementById("zoom");
   const zoomOut = document.getElementById("zoomOut");
+  const imageFlip = document.getElementById("imageFlip");
   const outSize = document.getElementById("outSize");
   const bgColor = document.getElementById("bgColor");
   const enhanceImage = document.getElementById("enhanceImage");
@@ -329,6 +372,7 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
 
   const eyeBtn = document.getElementById("eyeBtn");
   const brainBtn = document.getElementById("brainBtn");
+  const extraBtn = document.getElementById("extraBtn");
   const textBtn = document.getElementById("textBtn");
   const lineBtn = document.getElementById("lineBtn");
 
@@ -339,11 +383,17 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
   const eyeSpacingOut = document.getElementById("eyeSpacingOut");
   const eyeRotationOut = document.getElementById("eyeRotationOut");
 
-  const brainSize = document.getElementById("brainSize");
+  const brainZoom = document.getElementById("brainZoom");
   const brainRotation = document.getElementById("brainRotation");
-  const brainSizeOut = document.getElementById("brainSizeOut");
+  const brainZoomOut = document.getElementById("brainZoomOut");
   const brainRotationOut = document.getElementById("brainRotationOut");
   const brainFlip = document.getElementById("brainFlip");
+
+  const extraZoom = document.getElementById("extraZoom");
+  const extraRotation = document.getElementById("extraRotation");
+  const extraZoomOut = document.getElementById("extraZoomOut");
+  const extraRotationOut = document.getElementById("extraRotationOut");
+  const extraFlip = document.getElementById("extraFlip");
 
   const textInput = document.getElementById("textInput");
   const textSize = document.getElementById("textSize");
@@ -358,6 +408,9 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
 
   const img = new Image();
   const brainImg = new Image();
+  const extraImg = new Image();
+  const PART_BASE_SIZE = 150;
+  let extraImageLoaded = false;
   let selectedPart = "eye";
   let drag = null;
 
@@ -365,11 +418,13 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
     panX: 0,
     panY: 50,
     zoom: 0.90,
+    imageFlip: false,
     enhanceImage: false,
     brightness: 1.18,
     contrast: 1.32,
     eye: { x: 218, y: 310, diameter: 116, spacing: 154, rotation: 0 },
-    brain: { x: 248, y: 193, size: 150, rotation: 0, flip: false },
+    brain: { x: 248, y: 193, zoom: 1, rotation: 0, flip: false },
+    extra: { x: 256, y: 256, zoom: 1, rotation: 0, flip: false },
     text: { x: 252, y: 56, size: 48, rotation: 0, text: "Neuron Activation", color: "#000000" },
     line: {
       x1: 200, y1: 88,
@@ -383,6 +438,7 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
   function syncControls() {
     zoom.value = state.zoom;
     zoomOut.value = Number(state.zoom).toFixed(2) + "×";
+    imageFlip.checked = state.imageFlip;
     enhanceImage.checked = state.enhanceImage;
     brightness.value = state.brightness;
     contrast.value = state.contrast;
@@ -390,6 +446,7 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
     contrastOut.value = Number(state.contrast).toFixed(2) + "×";
     eyeBtn.classList.toggle("active", selectedPart === "eye");
     brainBtn.classList.toggle("active", selectedPart === "brain");
+    extraBtn.classList.toggle("active", selectedPart === "extra");
     textBtn.classList.toggle("active", selectedPart === "text");
     lineBtn.classList.toggle("active", selectedPart === "line");
 
@@ -400,11 +457,17 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
     eyeSpacingOut.value = Math.round(state.eye.spacing) + " px";
     eyeRotationOut.value = Math.round(state.eye.rotation) + "°";
 
-    brainSize.value = state.brain.size;
+    brainZoom.value = state.brain.zoom;
     brainRotation.value = state.brain.rotation;
-    brainSizeOut.value = Math.round(state.brain.size) + " px";
+    brainZoomOut.value = Number(state.brain.zoom).toFixed(2) + "×";
     brainRotationOut.value = Math.round(state.brain.rotation) + "°";
     brainFlip.checked = state.brain.flip;
+
+    extraZoom.value = state.extra.zoom;
+    extraRotation.value = state.extra.rotation;
+    extraZoomOut.value = Number(state.extra.zoom).toFixed(2) + "×";
+    extraRotationOut.value = Math.round(state.extra.rotation) + "°";
+    extraFlip.checked = state.extra.flip;
 
     textInput.value = state.text.text;
     textSize.value = state.text.size;
@@ -421,6 +484,7 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
   function setVisibleSections() {
     document.getElementById("eyeSection").style.display = selectedPart === "eye" ? "" : "none";
     document.getElementById("brainSection").style.display = selectedPart === "brain" ? "" : "none";
+    document.getElementById("extraSection").style.display = selectedPart === "extra" ? "" : "none";
     document.getElementById("textSection").style.display = selectedPart === "text" ? "" : "none";
     document.getElementById("lineSection").style.display = selectedPart === "line" ? "" : "none";
   }
@@ -436,6 +500,7 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
     state.panX = DEFAULT.panX;
     state.panY = DEFAULT.panY;
     state.zoom = DEFAULT.zoom;
+    state.imageFlip = DEFAULT.imageFlip;
     zoom.value = String(DEFAULT.zoom);
     syncControls();
     drawPreview();
@@ -457,12 +522,19 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
     if (brainImg.complete) drawPreview();
   }
 
+  function resetExtraImage() {
+    extraFileInput.value = "";
+    extraImageLoaded = false;
+    extraImg.removeAttribute("src");
+  }
+
   function resetAll() {
     Object.assign(state, structuredClone(DEFAULT));
     zoom.value = String(DEFAULT.zoom);
     bgColor.value = "#ffffff";
     resetInputImage();
     resetBrainImage();
+    resetExtraImage();
     syncControls();
     setVisibleSections();
     drawPreview();
@@ -513,24 +585,41 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
     drawSingleEye(g, cx2, cy2, e, scale);
   }
 
-  function drawBrain(g, scale) {
-    const b = state.brain;
-    if (!brainImg.complete || !brainImg.naturalWidth) return;
-    const aspect = brainImg.naturalWidth / brainImg.naturalHeight;
-    const width = aspect >= 1 ? b.size : b.size * aspect;
-    const height = aspect >= 1 ? b.size / aspect : b.size;
+  function imageLayerSize(image, layer) {
+    if (!image.naturalWidth || !image.naturalHeight) return null;
+    const size = PART_BASE_SIZE * layer.zoom;
+    const aspect = image.naturalWidth / image.naturalHeight;
+    return {
+      width: aspect >= 1 ? size : size * aspect,
+      height: aspect >= 1 ? size / aspect : size
+    };
+  }
+
+  function drawImageLayer(g, image, layer, scale) {
+    const dimensions = imageLayerSize(image, layer);
+    if (!dimensions) return;
     g.save();
-    g.translate(b.x * scale, b.y * scale);
-    g.rotate(b.rotation * Math.PI / 180);
-    g.scale(b.flip ? -1 : 1, 1);
+    g.translate(layer.x * scale, layer.y * scale);
+    g.rotate(layer.rotation * Math.PI / 180);
+    g.scale(layer.flip ? -1 : 1, 1);
     g.drawImage(
-      brainImg,
-      -width * scale / 2,
-      -height * scale / 2,
-      width * scale,
-      height * scale
+      image,
+      -dimensions.width * scale / 2,
+      -dimensions.height * scale / 2,
+      dimensions.width * scale,
+      dimensions.height * scale
     );
     g.restore();
+  }
+
+  function drawBrain(g, scale) {
+    if (!brainImg.complete || !brainImg.naturalWidth) return;
+    drawImageLayer(g, brainImg, state.brain, scale);
+  }
+
+  function drawExtraImage(g, scale) {
+    if (!extraImageLoaded) return;
+    drawImageLayer(g, extraImg, state.extra, scale);
   }
 
   function drawText(g, scale) {
@@ -601,7 +690,11 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
       const totalW = state.eye.spacing + state.eye.diameter;
       drawGuideRect(g, (state.eye.x + totalW / 2) * scale, state.eye.y * scale, totalW * scale, state.eye.diameter * scale, state.eye.rotation);
     } else if (selectedPart === "brain") {
-      drawGuideRect(g, state.brain.x * scale, state.brain.y * scale, state.brain.size * scale, state.brain.size * scale, state.brain.rotation);
+      const dimensions = imageLayerSize(brainImg, state.brain);
+      if (dimensions) drawGuideRect(g, state.brain.x * scale, state.brain.y * scale, dimensions.width * scale, dimensions.height * scale, state.brain.rotation);
+    } else if (selectedPart === "extra") {
+      const dimensions = extraImageLoaded ? imageLayerSize(extraImg, state.extra) : null;
+      if (dimensions) drawGuideRect(g, state.extra.x * scale, state.extra.y * scale, dimensions.width * scale, dimensions.height * scale, state.extra.rotation);
     } else if (selectedPart === "text") {
       const approxW = Math.max(180 * scale, state.text.text.length * state.text.size * scale * 0.45);
       drawGuideRect(g, state.text.x * scale, state.text.y * scale, approxW, state.text.size * scale * 1.4, state.text.rotation);
@@ -615,17 +708,25 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
 
     if (img.complete && img.naturalWidth) {
       const r = fitRect(img.naturalWidth, img.naturalHeight, size);
-      const prevFilter = g.filter;
+      g.save();
       if (state.enhanceImage) {
         g.filter = `brightness(${state.brightness}) contrast(${state.contrast})`;
       }
-      g.drawImage(img, r.x, r.y, r.w, r.h);
-      g.filter = prevFilter;
+      if (state.imageFlip) {
+        g.translate(r.x + r.w / 2, r.y + r.h / 2);
+        g.scale(-1, 1);
+        g.drawImage(img, -r.w / 2, -r.h / 2, r.w, r.h);
+      } else {
+        g.drawImage(img, r.x, r.y, r.w, r.h);
+      }
+      g.restore();
     }
 
     const s = size / 512;
-    drawText(g, s);
+    drawExtraImage(g, s);
     drawBrain(g, s);
+    drawLine(g, s);
+    drawText(g, s);
     drawEyes(g, s);
 
     if (guides) {
@@ -633,7 +734,6 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
       if (selectedPart === "line") drawLineGuides(g, s);
     }
 
-    drawLine(g, s);
   }
 
   function drawPreview() {
@@ -662,7 +762,8 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
 
     if (Math.hypot(p.x - eye1x, p.y - state.eye.y) < state.eye.diameter * 0.7) return {part:"eye"};
     if (Math.hypot(p.x - eye2x, p.y - state.eye.y) < state.eye.diameter * 0.7) return {part:"eye"};
-    if (Math.hypot(p.x - state.brain.x, p.y - state.brain.y) < state.brain.size * 0.7) return {part:"brain"};
+    if (extraImageLoaded && Math.hypot(p.x - state.extra.x, p.y - state.extra.y) < PART_BASE_SIZE * state.extra.zoom * 0.7) return {part:"extra"};
+    if (Math.hypot(p.x - state.brain.x, p.y - state.brain.y) < PART_BASE_SIZE * state.brain.zoom * 0.7) return {part:"brain"};
     if (Math.hypot(p.x - state.text.x, p.y - state.text.y) < Math.max(80, state.text.text.length * state.text.size * 0.25)) return {part:"text"};
     return null;
   }
@@ -684,6 +785,8 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
         drag = {type:"part", part:"eye", start:p, ox:state.eye.x, oy:state.eye.y};
       } else if (hit.part === "brain") {
         drag = {type:"part", part:"brain", start:p, ox:state.brain.x, oy:state.brain.y};
+      } else if (hit.part === "extra") {
+        drag = {type:"part", part:"extra", start:p, ox:state.extra.x, oy:state.extra.y};
       } else if (hit.part === "text") {
         drag = {type:"part", part:"text", start:p, ox:state.text.x, oy:state.text.y};
       } else if (hit.part === "line") {
@@ -719,6 +822,9 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
       } else if (drag.part === "brain") {
         state.brain.x = drag.ox + dx;
         state.brain.y = drag.oy + dy;
+      } else if (drag.part === "extra") {
+        state.extra.x = drag.ox + dx;
+        state.extra.y = drag.oy + dy;
       } else if (drag.part === "text") {
         state.text.x = drag.ox + dx;
         state.text.y = drag.oy + dy;
@@ -751,6 +857,7 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
       state.panX = 0;
       state.panY = 0;
       state.zoom = 1;
+      state.imageFlip = false;
       zoom.value = "1";
       img.onload = () => drawPreview();
       img.src = reader.result;
@@ -771,9 +878,29 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
     reader.readAsDataURL(f);
   });
 
+  extraFileInput.addEventListener("change", () => {
+    const f = extraFileInput.files && extraFileInput.files[0];
+    if (!f || !f.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      extraImageLoaded = false;
+      extraImg.onload = () => {
+        extraImageLoaded = true;
+        switchPart("extra");
+      };
+      extraImg.onerror = () => {
+        extraImageLoaded = false;
+        drawPreview();
+      };
+      extraImg.src = reader.result;
+    };
+    reader.readAsDataURL(f);
+  });
+
   resetImageBtn.addEventListener("click", resetImage);
   resetAllBtn.addEventListener("click", resetAll);
   zoom.addEventListener("input", () => { state.zoom = +zoom.value; syncControls(); drawPreview(); });
+  imageFlip.addEventListener("change", () => { state.imageFlip = imageFlip.checked; drawPreview(); });
   bgColor.addEventListener("input", drawPreview);
   enhanceImage.addEventListener("change", () => { state.enhanceImage = enhanceImage.checked; syncControls(); drawPreview(); });
   brightness.addEventListener("input", () => { state.brightness = +brightness.value; syncControls(); drawPreview(); });
@@ -781,6 +908,7 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
 
   eyeBtn.addEventListener("click", () => switchPart("eye"));
   brainBtn.addEventListener("click", () => switchPart("brain"));
+  extraBtn.addEventListener("click", () => switchPart("extra"));
   textBtn.addEventListener("click", () => switchPart("text"));
   lineBtn.addEventListener("click", () => switchPart("line"));
 
@@ -788,9 +916,13 @@ Full license: https://bbbbbhimiko.github.io/License/MIT/
   eyeSpacing.addEventListener("input", () => { state.eye.spacing = +eyeSpacing.value; syncControls(); drawPreview(); });
   eyeRotation.addEventListener("input", () => { state.eye.rotation = +eyeRotation.value; syncControls(); drawPreview(); });
 
-  brainSize.addEventListener("input", () => { state.brain.size = +brainSize.value; syncControls(); drawPreview(); });
+  brainZoom.addEventListener("input", () => { state.brain.zoom = +brainZoom.value; syncControls(); drawPreview(); });
   brainRotation.addEventListener("input", () => { state.brain.rotation = +brainRotation.value; syncControls(); drawPreview(); });
   brainFlip.addEventListener("change", () => { state.brain.flip = brainFlip.checked; drawPreview(); });
+
+  extraZoom.addEventListener("input", () => { state.extra.zoom = +extraZoom.value; syncControls(); drawPreview(); });
+  extraRotation.addEventListener("input", () => { state.extra.rotation = +extraRotation.value; syncControls(); drawPreview(); });
+  extraFlip.addEventListener("change", () => { state.extra.flip = extraFlip.checked; drawPreview(); });
 
   textInput.addEventListener("input", () => { state.text.text = textInput.value; drawPreview(); });
   textSize.addEventListener("input", () => { state.text.size = +textSize.value; syncControls(); drawPreview(); });
